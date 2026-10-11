@@ -3,7 +3,7 @@
 <img src="https://global.discourse-cdn.com/streamlit/optimized/3X/d/9/d98ea0064118f8129b1138b1e5aca3580fa108c1_2_690x345.jpeg" style="border-radius:20px" width="400" height="200" alt="XAMPP Meta Panel Logo" />
 
 
-# SCRIPY WINDOWS PREVIEW - PRESS RELEASE 0.1.0
+# SCRIPY WINDOWS PREVIEW - PRESS RELEASE 2.4.7
 
 **Powerfull Preview ADB Manager Android For Windows**
 
@@ -24,7 +24,7 @@
 
 </div>
 
-# Streamlit Launcher For VS Code (Date Skunder) - Realease 2.4.5
+# Streamlit Launcher For VS Code (Date Skunder) - Realease 2.5.7
 
 - viture update Export To Docx Word Analyz Detect Vision Decision Tree Algoritma C4.5
 - Visualisasi Decision Tree Algoritma C4.5
@@ -34,6 +34,34 @@
 - Stock Inventory Items
 - Market Seller Analyz
 - BuY Market Analyz
+- Fix Bugs Export To Docx Word Analyz Detect Vision Decision Tree Algoritma C4.5
+- Fix Bugs 
+- Fix Bugs Export To Pdf Analyz Detect Vision Decision Tree Algoritma C4.5
+- Fix Bugs Streamlitlauncher 2.5.7
+- add Vitures Export PDF 
+- add Vitures Export Docx 
+- add Vitures Export PPTX
+- add vitures Report 
+- add vitures Matrix Analyz
+- add vitures Flowchart 
+- add vitures Decision Tree C4.5
+- add vitures Crosstabulation
+- add vitures Chi-Square Test
+- add vitures Normality Test
+- Test Traning Model
+- Fix Bugs Turnity AI
+- Fix Bugs Jurnal APA Style 
+- Fix bugs Analyz
+- add vitures Workflow 
+- add vitures Analyz Market BuY
+- Fix bugs Jurnal APA Style 
+- Fix bugs Analyz
+- add vitures Stock Inventory Items
+- add Auto Detect File Type
+- add vitures Matrix Analyz
+- Fix bugs PPTX
+- dll
+
 
 <img src = "https://github.com/Python-Project-2/Streamlit-Launcher/blob/main/apps.gif?raw=true">
 
