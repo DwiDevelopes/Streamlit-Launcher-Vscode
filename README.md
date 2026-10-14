@@ -2,8 +2,11 @@
 
 <img src="https://global.discourse-cdn.com/streamlit/optimized/3X/d/9/d98ea0064118f8129b1138b1e5aca3580fa108c1_2_690x345.jpeg" style="border-radius:20px" width="400" height="200" alt="XAMPP Meta Panel Logo" />
 
+# Install Model LLM Engine
 
-# SCRIPY WINDOWS PREVIEW - PRESS RELEASE 0.1.0
+<img src= "https://github.com/Python-Project-2/Streamlit-Launcher/blob/main/contoh.gif?raw=true" />
+
+# SCRIPY WINDOWS PREVIEW - PRESS RELEASE 3.7
 
 **Powerfull Preview ADB Manager Android For Windows**
 
