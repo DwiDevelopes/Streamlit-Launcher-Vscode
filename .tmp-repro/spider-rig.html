@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Rig Spider</title>
+<link rel="stylesheet" href="../media/spider.css">
+<style>
+  body { margin: 0; background: #202020; }
+  /* Perbesar laba-laba agar rangka kakinya mudah diperiksa. */
+  #spider-agent { width: 340px; height: 340px; }
+  #spider-panel { display: none; }
+</style>
+</head>
+<body>
+<pre id="angka" style="position:fixed;left:8px;bottom:8px;color:#9ae6b4;font:13px monospace;margin:0;z-index:9999"></pre>
+<div id="app">
+  <section class="sec" id="summary"><h2>Summary</h2><div class="card"><h3>Column Type Composition</h3></div></section>
+</div>
+<script src="../media/spider.js"></script>
+<script>
+  const state = {};
+  const vscode = { postMessage: () => { }, getState: () => state, setState: (s) => Object.assign(state, s) };
+  const app = document.getElementById('app');
+  window.SkunderSpider.init({ app, sheet: { name: 'Sheet1' }, state: { fileName: 'x.csv' }, vscode, el: () => document.createElement('div'), esc: (s) => String(s), fmt: (s) => String(s), cut: (s) => String(s), section: null });
+  window.dispatchEvent(new MessageEvent('message', { data: { type: 'spiderConfig', enabled: true, speak: false, allowActions: true, walkSpeed: 1 } }));
+
+  // Pin posisi laba-laba di tengah supaya rangka terlihat utuh; animasi langkah tetap berjalan
+  // karena loop internal tetap menghitung gerak (posisi di layar kita tahan di sini).
+  const agent = document.getElementById('spider-agent');
+  const pin = () => {
+    if (agent.style.left !== '150px' || agent.style.top !== '70px') {
+      agent.style.left = '150px';
+      agent.style.top = '70px';
+    }
+  };
+  new MutationObserver(pin).observe(agent, { attributes: true, attributeFilter: ['style'] });
+
+  const kartu = document.querySelector('#summary .card');
+  window.dispatchEvent(new MessageEvent('message', { data: { type: 'spiderPlan', plan: { reply: '', source: 'llm', steps: [{ say: '', goto: kartu.dataset.spiderId, highlight: false, hold: 6000 }] } } }));
+
+  // Tampilkan nilai rangka terbaru di layar supaya bisa dibaca dari tangkapan layar.
+  const angka = document.getElementById('angka');
+  const tampilkan = () => {
+    requestAnimationFrame(tampilkan);
+    const femur = [...document.querySelectorAll('#spider-agent .femur')].map((f) => f.getAttribute('transform') || '-');
+    const tibia = [...document.querySelectorAll('#spider-agent .tibia')].map((f) => f.getAttribute('transform') || '-');
+    angka.textContent = 'F1=' + femur[0] + '  F5=' + femur[4] + '\nT1=' + tibia[0] + '  T5=' + tibia[4]
+      + '\nrig=' + document.querySelector('#spider-agent .sp-rig').getAttribute('transform')
+      + '  core=' + document.querySelector('#spider-agent .sp-core').getAttribute('transform');
+  };
+  requestAnimationFrame(tampilkan);
+</script>
+</body>
+</html>

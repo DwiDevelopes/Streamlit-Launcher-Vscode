@@ -1,0 +1,18 @@
+[
+  {
+    "sheet": "Penjualan",
+    "file": "penjualan.csv",
+    "slug": "penjualan",
+    "rows": 40,
+    "totalRows": 40,
+    "truncated": false
+  },
+  {
+    "sheet": "Stok Gudang",
+    "file": "stok-gudang.csv",
+    "slug": "stok-gudang",
+    "rows": 40,
+    "totalRows": 40,
+    "truncated": false
+  }
+]

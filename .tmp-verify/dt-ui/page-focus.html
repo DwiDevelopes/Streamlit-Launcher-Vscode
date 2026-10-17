@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"><style>
+:root {
+  --vscode-foreground: #cccccc;
+  --vscode-editor-background: #1f1f1f;
+  --vscode-sideBar-background: #181818;
+  --vscode-editorWidget-background: #252526;
+  --vscode-panel-border: #3c3c3c;
+  --vscode-button-background: #0e639c;
+  --vscode-button-foreground: #ffffff;
+  --vscode-button-secondaryBackground: #313131;
+  --vscode-button-secondaryForeground: #cccccc;
+  --vscode-button-secondaryHoverBackground: #3c3c3c;
+  --vscode-textLink-foreground: #3794ff;
+  --vscode-input-background: #313131;
+  --vscode-input-foreground: #cccccc;
+  --vscode-input-border: #3c3c3c;
+  --vscode-badge-background: #4d4d4d;
+  --vscode-badge-foreground: #ffffff;
+  --vscode-textCodeBlock-background: #1a1a1a;
+  --vscode-font-family: "Segoe UI", sans-serif;
+  --vscode-editor-font-family: Consolas, monospace;
+  --vscode-focusBorder: #007fd4;
+  --vscode-list-hoverBackground: #2a2d2e;
+  --vscode-menu-background: #252526;
+  --vscode-widget-shadow: rgba(0,0,0,.36);
+}
+/* hanya untuk harness: sembunyikan seksi lain agar fokus seksi C4.5 */
+.harness-focus section:not(#decisionTree) { display: none !important; }
+.harness-focus .card .cbox { height: 60px !important; }
+:root {
+    --gap: 18px;
+    --radius: 10px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    padding: 0 28px 80px;
+    color: var(--vscode-foreground);
+    background: var(--vscode-editor-background);
+    font-family: var(--vscode-font-family);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+h1 {
+    font-size: 21px;
+    margin: 0 0 6px;
+    font-weight: 700;
+}
+
+h2 {
+    font-size: 16px;
+    margin: 36px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .3));
+    grid-column: 1 / -1;
+    letter-spacing: 0.01em;
+}
+
+h3 {
+    font-size: 13px;
+    margin: 0 0 6px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.muted {
+    opacity: .7;
+    font-size: 12px;
+    margin: 2px 0 8px;
+}
+
+.loading,
+.err {
+    padding: 40px;
+    text-align: center;
+    font-size: 15px;
+}
+
+.err {
+    color: var(--vscode-errorForeground);
+}
+
+.head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 0 12px;
+    gap: 16px;
+}
+
+.head-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: 0;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: filter .15s, opacity .15s, transform .1s;
+    white-space: nowrap;
+}
+
+.btn:hover {
+    background: var(--vscode-button-hoverBackground);
+    filter: brightness(1.05);
+}
+
+.btn.primary {
+    background: var(--vscode-button-background, #2563eb);
+    color: var(--vscode-button-foreground, #ffffff);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+}
+
+.tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.tab {
+    background: transparent;
+    color: inherit;
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .4));
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.tab.active {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+
+.nav {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    gap: 20px;
+    padding: 10px 0;
+    background: var(--vscode-editor-background);
+    border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .3));
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.nav a {
+    color: var(--vscode-textLink-foreground);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.nav a:hover {
+    text-decoration: underline;
+}
+
+.sec {
+    scroll-margin-top: 44px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: var(--gap);
+}
+
+.card {
+    background: var(--vscode-sideBar-background, rgba(128, 128, 128, .08));
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    border-radius: var(--radius);
+    padding: 16px;
+    min-width: 0;
+}
+
+.card.wide {
+    grid-column: 1 / -1;
+}
+
+.cbox {
+    position: relative;
+    width: 100%;
+}
+
+.kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+    margin-bottom: 8px;
+}
+
+.kpi {
+    background: var(--vscode-sideBar-background, rgba(128, 128, 128, .1));
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    border-radius: var(--radius);
+    padding: 14px 16px;
+}
+
+.kpi b {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.kpi span {
+    opacity: .7;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.insights {
+    margin: 0;
+    padding: 12px 12px 12px 30px;
+    line-height: 1.7;
+}
+
+.badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 10px;
+    color: #fff;
+    background: #888;
+}
+
+.t-number,
+.t-integer {
+    background: #4e79a7;
+}
+
+.t-category {
+    background: #f28e2b;
+}
+
+.t-date {
+    background: #59a14f;
+}
+
+.t-boolean {
+    background: #af7aa1;
+}
+
+.t-id {
+    background: #9c755f;
+}
+
+.t-text {
+    background: #76b7b2;
+}
+
+.stats {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 6px;
+    font-size: 12px;
+}
+
+.stats td {
+    padding: 2px 4px;
+}
+
+.stats td:nth-child(odd) {
+    opacity: .65;
+}
+
+.box {
+    position: relative;
+    height: 14px;
+    margin: 6px 0 10px;
+    background: rgba(128, 128, 128, .15);
+    border-radius: 3px;
+}
+
+.box .whisk {
+    position: absolute;
+    top: 6px;
+    height: 2px;
+    background: var(--vscode-foreground);
+    opacity: .5;
+}
+
+.box .iqr {
+    position: absolute;
+    top: 2px;
+    height: 10px;
+    background: #4e79a7;
+    border-radius: 2px;
+}
+
+.box .med {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 14px;
+    background: #e15759;
+}
+
+.toolbar {
+    margin-bottom: 8px;
+}
+
+.toolbar input {
+    width: 100%;
+    max-width: 360px;
+    padding: 5px 8px;
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border, rgba(128, 128, 128, .4));
+    border-radius: 4px;
+}
+
+.tablewrap {
+    overflow: auto;
+}
+
+.tablewrap.tall {
+    max-height: 480px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table.data {
+    width: 100%;
+    font-size: 12px;
+}
+
+table.data th {
+    position: sticky;
+    top: 0;
+    background: var(--vscode-editorGroupHeader-tabsBackground, #333);
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    padding: 6px 10px;
+    border-bottom: 2px solid var(--vscode-panel-border, #555);
+}
+
+table.data td {
+    padding: 4px 10px;
+    border-bottom: 1px solid rgba(128, 128, 128, .18);
+    white-space: nowrap;
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+table.data tr:hover td {
+    background: rgba(128, 128, 128, .12);
+}
+
+td.r {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+td.idx {
+    opacity: .45;
+}
+
+td.nul {
+    opacity: .35;
+    text-align: center;
+}
+
+.card>.btn {
+    margin-top: 10px;
+}
+
+table.heat {
+    margin: 0 auto 8px;
+    font-size: 11px;
+}
+
+table.heat th {
+    padding: 4px 8px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+table.heat td {
+    padding: 8px 10px;
+    text-align: center;
+    min-width: 52px;
+    border: 1px solid var(--vscode-editor-background);
+}
+
+/* ===== Responsif ===== */
+.grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+}
+
+.tablewrap,
+.nav {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ===== PDF Export Link Bar ===== */
+.pdf-link-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    margin: 12px 0;
+    background: rgba(37, 99, 235, 0.10);
+    border: 1px solid rgba(37, 99, 235, 0.30);
+    border-radius: 8px;
+    font-size: 12px;
+    animation: cardIn .3s ease;
+}
+
+.pdf-link-bar .pdf-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.pdf-link-bar .pdf-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.pdf-link-bar .pdf-info strong {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 2px;
+}
+
+.pdf-link-bar .pdf-info a {
+    color: var(--vscode-textLink-foreground, #60a5fa);
+    text-decoration: none;
+    font-family: monospace;
+    font-size: 11px;
+    word-break: break-all;
+}
+
+.pdf-link-bar .pdf-info a:hover {
+    text-decoration: underline;
+}
+
+.pdf-link-bar .pdf-close {
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    opacity: .5;
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.pdf-link-bar .pdf-close:hover {
+    opacity: 1;
+    background: rgba(128, 128, 128, .2);
+}
+
+/* ===== Online Project Link Display ===== */
+.link-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 20px;
+    font-size: 11px;
+    margin-left: 6px;
+    text-decoration: none;
+    color: var(--vscode-textLink-foreground, #818cf8);
+    transition: background .15s;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.link-bar:hover {
+    background: rgba(99, 102, 241, 0.18);
+    text-decoration: none;
+}
+
+@media (max-width: 700px) {
+    body {
+        padding: 0 10px 50px;
+    }
+
+    h1 {
+        font-size: 17px;
+    }
+
+    .head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .nav {
+        overflow-x: auto;
+        white-space: nowrap;
+        gap: 12px;
+    }
+
+    .kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .bcard.s-l,
+    .bcard.s-xl {
+        grid-column: auto;
+    }
+}
+
+/* ===== Animasi ===== */
+.card,
+.kpi {
+    animation: cardIn .5s cubic-bezier(.2, .8, .2, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 35ms);
+}
+
+@keyframes cardIn {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.card {
+    position: relative;
+    transition: box-shadow .2s, border-color .2s;
+}
+
+.card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .25);
+    border-color: var(--vscode-focusBorder, #007fd4);
+}
+
+.card.dragging {
+    opacity: .4;
+    outline: 2px dashed var(--vscode-focusBorder, #007fd4);
+}
+
+.btn {
+    transition: background .15s, transform .1s;
+}
+
+.btn:active {
+    transform: scale(.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* ===== Drag handle ===== */
+.grip {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    cursor: grab;
+    opacity: .35;
+    font-size: 16px;
+    line-height: 1;
+    user-select: none;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: opacity .15s, background .15s;
+}
+
+.card:hover .grip {
+    opacity: .9;
+}
+
+.grip:hover {
+    background: rgba(128, 128, 128, .25);
+}
+
+.grip:active {
+    cursor: grabbing;
+}
+
+/* ===== Chart Builder ===== */
+.btoolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.btn.secondary {
+    background: var(--vscode-button-secondaryBackground, rgba(128, 128, 128, .3));
+    color: var(--vscode-button-secondaryForeground, inherit);
+}
+
+.bhead {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.bhead .grip {
+    position: static;
+    opacity: .6;
+    font-size: 18px;
+}
+
+.bhead select {
+    flex: 1;
+    min-width: 0;
+    font-weight: 600;
+}
+
+.bctl {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    margin-bottom: 8px;
+}
+
+.bctl label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 10px;
+    opacity: .9;
+    flex: 1 1 110px;
+    min-width: 90px;
+}
+
+select {
+    background: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
+    border: 1px solid var(--vscode-dropdown-border, rgba(128, 128, 128, .4));
+    border-radius: 4px;
+    padding: 3px 4px;
+    font-size: 12px;
+    max-width: 100%;
+}
+
+.ib {
+    background: transparent;
+    color: inherit;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 2px 6px;
+}
+
+.ib:hover {
+    background: rgba(128, 128, 128, .25);
+}
+
+.bcard .cbox {
+    height: 280px;
+}
+
+.bcard.s-s .cbox {
+    height: 220px;
+}
+
+.bcard.s-l .cbox {
+    height: 340px;
+}
+
+.bcard.s-xl .cbox {
+    height: 420px;
+}
+
+@media (min-width: 900px) {
+    .bcard.s-l {
+        grid-column: span 2;
+    }
+}
+
+.bcard.s-xl {
+    grid-column: 1 / -1;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    opacity: .6;
+    text-align: center;
+}
+
+/* ===== Notes & Observations ===== */
+.notes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.notes-head-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .2));
+}
+
+.notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.note-card {
+    background: var(--vscode-editor-background, rgba(0, 0, 0, .15));
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color .15s ease;
+}
+
+.note-card:focus-within {
+    border-color: var(--vscode-focusBorder, #007acc);
+}
+
+.note-top {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.note-title-input {
+    flex: 1;
+    min-width: 160px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 8px;
+    background: var(--vscode-input-background, transparent);
+    color: var(--vscode-input-foreground, inherit);
+    border: 1px solid var(--vscode-input-border, rgba(128, 128, 128, .3));
+    border-radius: 4px;
+}
+
+.note-cat-select {
+    padding: 3px 6px;
+    font-size: 11px;
+}
+
+.note-date {
+    font-size: 11px;
+}
+
+.note-del-btn {
+    color: var(--vscode-errorForeground, #f87171);
+    opacity: .7;
+}
+
+.note-del-btn:hover {
+    opacity: 1;
+    background: rgba(239, 68, 68, .15);
+}
+
+.note-textarea {
+    width: 100%;
+    resize: vertical;
+    min-height: 54px;
+    padding: 6px 8px;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.5;
+    background: var(--vscode-input-background, transparent);
+    color: var(--vscode-input-foreground, inherit);
+    border: 1px solid var(--vscode-input-border, rgba(128, 128, 128, .3));
+    border-radius: 4px;
+}
+
+/* ===== Stock / Inventory Feature Styles ===== */
+.stock-kpis .kpi.kpi-crit {
+    border-color: rgba(239, 68, 68, .5);
+    background: rgba(239, 68, 68, .12);
+}
+.stock-kpis .kpi.kpi-crit b {
+    color: #ef4444;
+}
+
+.stock-kpis .kpi.kpi-warn {
+    border-color: rgba(245, 158, 11, .5);
+    background: rgba(245, 158, 11, .12);
+}
+.stock-kpis .kpi.kpi-warn b {
+    color: #f59e0b;
+}
+
+.stock-kpis .kpi.kpi-ok {
+    border-color: rgba(16, 185, 129, .5);
+    background: rgba(16, 185, 129, .12);
+}
+.stock-kpis .kpi.kpi-ok b {
+    color: #10b981;
+}
+
+.stock-kpis .kpi.kpi-info {
+    border-color: rgba(59, 130, 246, .5);
+    background: rgba(59, 130, 246, .12);
+}
+.stock-kpis .kpi.kpi-info b {
+    color: #3b82f6;
+}
+
+.stock-tbl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.stock-filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.s-tab {
+    background: transparent;
+    color: inherit;
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .4));
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all .15s ease;
+}
+
+.s-tab:hover {
+    background: var(--vscode-button-secondaryHoverBackground, rgba(128, 128, 128, .15));
+}
+
+.s-tab.active {
+    background: var(--vscode-button-background, #2563eb);
+    color: var(--vscode-button-foreground, #ffffff);
+    border-color: transparent;
+}
+
+.stock-search {
+    background: var(--vscode-input-background, transparent);
+    color: var(--vscode-input-foreground, inherit);
+    border: 1px solid var(--vscode-input-border, rgba(128, 128, 128, .3));
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    width: 100%;
+}
+
+/* ===== Needs Analysis Styles ===== */
+.needs-hero-banner {
+    background: linear-gradient(135deg, rgba(37, 99, 235, .15), rgba(59, 130, 246, .05));
+    border: 1px solid rgba(59, 130, 246, .35);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+}
+
+.needs-hero-tag {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--vscode-textLink-foreground, #3b82f6);
+    font-weight: 700;
+}
+
+.needs-hero-banner h2 {
+    border-bottom: none;
+    margin: 8px 0 6px;
+    font-size: 20px;
+}
+
+.needs-budget-highlight {
+    color: #10b981;
+    font-weight: 800;
+}
+
+.needs-action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.needs-action-item {
+    background: var(--vscode-sideBar-background, rgba(128, 128, 128, .08));
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .2));
+    border-radius: 6px;
+    padding: 12px 14px;
+}
+
+.needs-action-title {
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.needs-action-desc {
+    font-size: 11.5px;
+    line-height: 1.45;
+}
+
+/* ===== CSV Health Styles ===== */
+.csv-meter-card {
+    background: var(--vscode-sideBar-background, rgba(128, 128, 128, .08));
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    padding: 20px 24px;
+}
+
+.csv-score-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.csv-score-pills {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.csv-pill {
+    background: var(--vscode-editor-background, rgba(0, 0, 0, .15));
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .2));
+    padding: 8px 14px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 90px;
+}
+
+.csv-pill strong {
+    font-size: 16px;
+    margin-top: 2px;
+}
+
+/* ===== Print / PDF Export Styles ===== */
+.print-only {
+    display: none !important;
+}
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 12mm 10mm;
+    }
+
+    body {
+        background: #ffffff !important;
+        color: #111827 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 11px !important;
+    }
+
+    .print-only {
+        display: block !important;
+    }
+
+    /* Hide screen-only interactive controls */
+    .nav,
+    .head,
+    .tabs,
+    .bctl,
+    .btoolbar,
+    .bhead button,
+    .bhead select,
+    .grip,
+    .toolbar,
+    .note-top,
+    .note-textarea,
+    .notes-head-bar button,
+    #btn-export-pdf,
+    button {
+        display: none !important;
+    }
+
+    /* Report Print Header */
+    .report-print-header {
+        border-bottom: 2px solid #2563eb;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+    }
+
+    .report-print-header h1 {
+        font-size: 22px;
+        color: #1e3a8a;
+        margin: 0 0 4px;
+    }
+
+    .report-print-header p {
+        margin: 0 0 10px;
+        color: #4b5563;
+        font-size: 11px;
+    }
+
+    .print-meta-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        background: #f3f4f6;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 11px;
+        color: #1f2937;
+    }
+
+    /* Card styling in print */
+    .card {
+        background: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
+        box-shadow: none !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        margin-bottom: 14px !important;
+        padding: 10px !important;
+    }
+
+    .card h3 {
+        color: #111827 !important;
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 4px;
+        margin-bottom: 8px;
+    }
+
+    .bcard-print-summary {
+        font-size: 10px;
+        font-weight: 600;
+        color: #4b5563;
+        margin-bottom: 6px;
+        padding: 2px 6px;
+        background: #f9fafb;
+        border-radius: 4px;
+        display: inline-block !important;
+    }
+
+    .cbox {
+        max-height: 320px !important;
+    }
+
+    /* Section headings */
+    h2 {
+        color: #1e40af !important;
+        border-bottom: 1.5px solid #dbeafe !important;
+        margin-top: 20px !important;
+        page-break-after: avoid;
+    }
+
+    /* KPI Cards */
+    .kpis {
+        display: grid !important;
+        grid-template-columns: repeat(7, 1fr) !important;
+        gap: 6px !important;
+    }
+
+    .kpi {
+        background: #f9fafb !important;
+        border: 1px solid #e5e7eb !important;
+        color: #111827 !important;
+        padding: 6px !important;
+    }
+
+    .kpi b {
+        color: #1d4ed8 !important;
+        font-size: 15px !important;
+    }
+
+    /* Printed Notes */
+    .note-print-content {
+        display: block !important;
+    }
+
+    .note-print-content h4 {
+        margin: 4px 0;
+        font-size: 12px;
+        color: #1e3a8a;
+    }
+
+    .note-print-content p {
+        margin: 2px 0 6px;
+        color: #374151;
+        line-height: 1.4;
+    }
+
+    .note-badge {
+        font-size: 9px;
+        background: #e0e7ff;
+        color: #3730a3;
+        padding: 1px 6px;
+        border-radius: 9999px;
+        font-weight: 500;
+    }
+
+    /* Data table in print */
+    .tablewrap.tall {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    table.data {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        font-size: 10px !important;
+    }
+
+    table.data th,
+    table.data td {
+        border: 1px solid #e5e7eb !important;
+        padding: 4px 6px !important;
+        color: #111827 !important;
+    }
+
+    table.data th {
+        background: #f3f4f6 !important;
+    }
+
+    /* Correlation table */
+    table.heat th,
+    table.heat td {
+        color: #111827 !important;
+    }
+}
+
+/* ── Diagram pohon keputusan C4.5 (SVG di dalam kartu) ───────────────────── */
+.treewrap { overflow-x: auto; padding-bottom: 6px; }
+.tree { max-width: none; display: block; }
+.tree .te { fill: none; stroke: rgba(128, 128, 128, .5); stroke-width: 1.4; }
+.tree .tl { font: 600 10.5px var(--vscode-font-family, sans-serif); fill: rgba(150, 150, 150, .95); text-anchor: middle; }
+.tree .tn rect { fill: var(--vscode-editorWidget-background, #21262d); stroke: rgba(128, 128, 128, .5); stroke-width: 1.2; }
+.tree .tn.split rect { stroke: #4e79a7; }
+.tree .tn.leaf rect { stroke: #59a14f; fill: rgba(89, 161, 79, .12); }
+.tree .tt { font: 700 11.5px var(--vscode-font-family, sans-serif); fill: var(--vscode-foreground, #e5e7eb); text-anchor: middle; }
+.tree .ts { font: 500 10px var(--vscode-font-family, sans-serif); fill: rgba(150, 150, 150, .95); text-anchor: middle; }
+
+/* ── Bilah kontrol & kanvas diagram pohon C4.5 ───────────────────────────── */
+.treehost {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    border-radius: 8px;
+    background: var(--vscode-editor-background, rgba(0, 0, 0, .12));
+    max-height: 660px;
+    overflow: auto;
+}
+
+.treehost .treewrap {
+    overflow: visible;
+}
+
+.treebar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 9px 18px;
+    padding: 10px 12px;
+    margin-top: 10px;
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    border-radius: 8px;
+    background: var(--vscode-editorWidget-background, rgba(128, 128, 128, .07));
+}
+
+.tctl {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: .95;
+}
+
+.tctl select,
+.tctl input[type="search"] {
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 3px 6px;
+    max-width: 170px;
+    border-radius: 5px;
+    border: 1px solid var(--vscode-input-border, var(--vscode-panel-border, rgba(128, 128, 128, .4)));
+    background: var(--vscode-input-background, rgba(0, 0, 0, .2));
+    color: var(--vscode-input-foreground, inherit);
+}
+
+.tctl input[type="search"] {
+    min-width: 190px;
+    max-width: 260px;
+}
+
+.tctl input[type="range"] {
+    width: 112px;
+    accent-color: var(--vscode-button-background, #2563eb);
+    cursor: pointer;
+}
+
+.tctl b {
+    min-width: 34px;
+    text-align: right;
+    font-size: 11.5px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.tctl.chk {
+    font-weight: 500;
+}
+
+.tctl.chk input[type="checkbox"] {
+    accent-color: var(--vscode-button-background, #2563eb);
+}
+
+.tbtns {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.tbtns button {
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid var(--vscode-button-border, var(--vscode-panel-border, rgba(128, 128, 128, .4)));
+    background: var(--vscode-button-secondaryBackground, rgba(128, 128, 128, .16));
+    color: var(--vscode-button-secondaryForeground, var(--vscode-foreground, inherit));
+}
+
+.tbtns button:hover {
+    background: var(--vscode-button-secondaryHoverBackground, rgba(128, 128, 128, .3));
+}
+
+/* ── Kepala kartu: judul + tombol aksi sebaris ──────────────────────────── */
+.card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.card-head h3 {
+    margin: 0;
+}
+
+/* ── Baris KPI rapat untuk seksi Decision Tree (12 kartu) ───────────────── */
+.kpis.kpis-6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+    .kpis.kpis-6 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .kpis.kpis-6 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ── Diagnostik & rekomendasi optimasi model ────────────────────────────── */
+.dt-advisor-card {
+    background: var(--vscode-sideBar-background, rgba(128, 128, 128, .08));
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .28));
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 14px;
+}
+
+/* ── Advisor & Recommendations ── */
+.dt-advisor-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-top: 8px;
+    background: var(--vscode-editor-background, rgba(0, 0, 0, .1));
+    border-left: 4px solid #4e79a7;
+    font-size: 12px;
+}
+
+.dt-advisor-item.warn { border-left-color: #f28e2b; }
+.dt-advisor-item.ok { border-left-color: #59a14f; }
+.dt-advisor-item.err { border-left-color: #e15759; }
+
+/* ── Code Generator Exporter ── */
+.dt-code-box {
+    position: relative;
+    background: var(--vscode-textCodeBlock-background, rgba(0, 0, 0, .3));
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-top: 8px;
+}
+
+.dt-code-box pre {
+    margin: 0;
+    font-family: var(--vscode-editor-font-family, monospace);
+    font-size: 11px;
+    line-height: 1.45;
+    overflow-x: auto;
+    max-height: 320px;
+}
+
+.dt-code-copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 3px 8px;
+    font-size: 10.5px;
+    cursor: pointer;
+}</style></head>
+<body class="harness-focus"><div id="app"><div class="print-only report-print-header">
+            <div class="print-brand">
+                <h1>Date Skunder Data Analysis Report</h1>
+                <p>File: <strong>SuperMarket Analysis.csv</strong> · Sheet: <strong>Sheet1</strong> · Generated on 10/17/2026, 12:28:56 AM</p>
+            </div>
+            <div class="print-meta-grid">
+                <div><span>Total Rows:</span> <strong>1,000</strong></div>
+                <div><span>Columns:</span> <strong>17</strong></div>
+                <div><span>Duplicate Rows:</span> <strong>0</strong></div>
+                <div><span>Missing Cells:</span> <strong>0.0%</strong></div>
+            </div>
+        </div><div class="head"><div><h1>SuperMarket Analysis.csv</h1><div class="muted">1,000 rows · 17 columns</div></div><div class="head-actions"><button class="btn primary" id="btn-export-docx" title="Save this data analysis as a professional Word document">📄 Export to DOCX</button><button class="btn" id="btn-export-pdf" title="Simpan analisis ini sebagai jurnal PDF">📑 Export Jurnal (PDF)</button><button class="btn" id="btn-export-xlsx" title="Simpan laporan analisis sebagai .xlsx (lengkap dengan grafik)">📊 Export Excel</button><button class="btn" id="btn-export-pptx" title="Simpan analisis sebagai presentasi PowerPoint (.pptx)">📽️ Export PPT</button><button class="btn" id="btn-export-workflow" title="Simpan diagram alur analisis sebagai gambar (PNG, JPG, SVG)">🧭 Export Flow</button><button class="btn" id="btn-export-json" title="Simpan seluruh hasil analisis berkas ini sebagai .json (semua lembar)">🧩 Export JSON</button><button class="btn" id="btn-export-python" title="Buat paket Python berisi seluruh data + skrip siap dijalankan (analysis.py, streamlit_app.py) + README">🐍 Export Python</button><button class="btn" id="btn-visit-website-online" title="Open: https://stremlit-launcher.streamlit.app/">🌐 Online Project</button><button class="btn" id="btn-visit-website-offline" title="Open: https://pypi.org/project/streamlit-launcher/">📦 PyPI Online Project</button><button class="btn" id="btn-visit-website-offline" title="Open: https://pepy.tech/projects/streamlit-launcher?timeRange=threeMonths&amp;category=version&amp;includeCIDownloads=true&amp;granularity=weekly&amp;viewType=line&amp;versions=Total%2C4.*%2C3.*">📩 Visit Download</button><button class="btn">↻ Reload</button></div></div><div style="display: flex; gap: 10px; flex-wrap: wrap; padding: 6px 0px 10px; align-items: center;"><a class="link-bar" title="Click to open in browser" href="#">🔗 https://stremlit-launcher.streamlit.app/</a><a class="link-bar" title="Click to open in browser" href="#">🔗 https://pypi.org/project/streamlit-launcher/</a></div><nav class="nav"><a href="#summary">Summary</a><a href="#businesskpi">📊 KPI Bisnis</a><a href="#stock">📦 Stok Barang</a><a href="#needs">🎯 Analisis Kebutuhan</a><a href="#csvhealth">🩺 Profil &amp; Kualitas CSV</a><a href="#decisionTree">🌳 Decision Tree C4.5</a><a href="#notes">Notes &amp; Observations</a><a href="#insights">Insights</a><a href="#table">Data Table</a><a href="#builder">Chart Builder</a><a href="#charts">Charts</a><a href="#advanced">Advanced</a><a href="#columns">Column Details</a><a href="#correlation">Correlation</a></nav><section class="sec" id="summary"><h2>Summary</h2><div class="kpis"><div class="kpi"><b>1,000</b><span>Rows</span></div><div class="kpi"><b>17</b><span>Columns</span></div><div class="kpi"><b>8</b><span>Numeric</span></div><div class="kpi"><b>6</b><span>Categorical</span></div><div class="kpi"><b>1</b><span>Date</span></div><div class="kpi"><b>0.0%</b><span>Missing Cells</span></div><div class="kpi"><b>0</b><span>Duplicates</span></div></div><div class="grid"><div class="card"><h3>Column Type Composition</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Missing Values per Column (%)</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Unique Values per Column</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Mean vs Median Radar (Normalized 0–1)</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Outliers per Numeric Column</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div></div></section><section class="sec" id="businesskpi"><h2>📊 KPI Bisnis &amp; Penjualan</h2><div class="grid"><div class="card wide"><h3>Indikator Utama · sumber pendapatan: Sales</h3><div class="kpis"><div class="kpi"><b>322,966.75</b><span>Total pendapatan</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#4e79a7;" title="">Info</div></div><div class="kpi"><b>307,587.38</b><span>Total biaya (COGS)</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#4e79a7;" title="">Info</div></div><div class="kpi"><b>15,379.37</b><span>Laba kotor</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#10b981;" title="">Sehat</div></div><div class="kpi"><b>4.76%</b><span>Margin laba kotor</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#ef4444;" title=">= 30% sehat; 15-30% waspada; < 15% rendah">Risiko</div></div><div class="kpi"><b>1,000</b><span>Jumlah order</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#4e79a7;" title="">Info</div></div><div class="kpi"><b>322.97</b><span>Rata-rata nilai order (AOV)</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#4e79a7;" title="">Info</div></div><div class="kpi"><b>5,510</b><span>Total unit terjual</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#4e79a7;" title="">Info</div></div><div class="kpi"><b>5.51</b><span>Item per order</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#4e79a7;" title="">Info</div></div><div class="kpi"><b>2</b><span>Jumlah pelanggan</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#4e79a7;" title="">Info</div></div><div class="kpi"><b>161,483.37</b><span>Pendapatan per pelanggan</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#4e79a7;" title="">Info</div></div><div class="kpi"><b>100%</b><span>Pelanggan berulang</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#10b981;" title=">= 30% sehat">Sehat</div></div><div class="kpi"><b>100%</b><span>Retensi antarperiode (rata-rata)</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#10b981;" title="">Sehat</div></div><div class="kpi"><b>23.32%</b><span>Pertumbuhan periode terakhir</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#10b981;" title="">Sehat</div></div><div class="kpi"><b>-3.04%</b><span>Rata-rata pertumbuhan per periode</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#ef4444;" title="">Risiko</div></div><div class="kpi"><b>58.74%</b><span>Kontribusi 10% pelanggan teratas</span><div class="badge" style="display:block;width:max-content;margin-top:6px;background:#f59e0b;" title="> 70% = risiko ketergantungan">Waspada</div></div></div></div><div class="card wide">
+            <h3>📌 Konteks Perhitungan</h3>
+            <div class="csv-score-pills">
+                <div class="csv-pill"><span class="muted">Baris dipakai</span><strong>1,000</strong></div>
+                <div class="csv-pill"><span class="muted">Baris dilewati</span><strong>0</strong></div>
+                <div class="csv-pill"><span class="muted">Sumber pendapatan</span><strong>Sales</strong></div>
+                <div class="csv-pill"><span class="muted">Pareto 80%</span><strong>5 produk (83.33%)</strong></div>
+                <div class="csv-pill"><span class="muted">HHI</span><strong>1,669</strong></div>
+                <div class="csv-pill"><span class="muted">Pertumbuhan terakhir</span><strong>23.32%</strong></div>
+                <div class="csv-pill"><span class="muted">Rata-rata pertumbuhan</span><strong>-3.04%</strong></div>
+            </div>
+        </div><div class="card wide"><h3>🔎 Kolom yang Terdeteksi Otomatis</h3>
+                <div class="tablewrap"><table class="data">
+                    <thead><tr><th>Peran</th><th>Kolom</th></tr></thead>
+                    <tbody><tr><td>Pendapatan</td><td><strong>Sales</strong></td></tr><tr><td>Biaya (COGS)</td><td><strong>cogs</strong></td></tr><tr><td>Kuantitas</td><td><strong>Quantity</strong></td></tr><tr><td>Harga</td><td><strong>Unit price</strong></td></tr><tr><td>Tanggal</td><td><strong>Date</strong></td></tr><tr><td>Order</td><td><strong>Invoice ID</strong></td></tr><tr><td>Pelanggan</td><td><strong>Customer type</strong></td></tr><tr><td>Produk</td><td><strong>Product line</strong></td></tr><tr><td>Wilayah</td><td><strong>Branch</strong></td></tr></tbody>
+                </table></div></div><div class="card"><h3>Komposisi Status KPI</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Tren Pendapatan &amp; Laba per Periode</h3><div class="cbox" style="height: 300px;"><canvas></canvas></div></div><div class="card"><h3>Pertumbuhan Pendapatan antar Periode (%)</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Pangsa Pendapatan Produk Teratas</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Pendapatan Produk Teratas</h3><div class="cbox" style="height: 300px;"><canvas></canvas></div></div><div class="card"><h3>Pendapatan per Wilayah</h3><div class="cbox" style="height: 300px;"><canvas></canvas></div></div><div class="card"><h3>Pendapatan per Pelanggan Teratas</h3><div class="cbox" style="height: 300px;"><canvas></canvas></div></div></div></section><section class="sec" id="stock"><h2>📦 Analisis &amp; Manajemen Stok Barang</h2><div class="kpis stock-kpis"><div class="kpi "><b>6</b><span>Total SKU</span></div><div class="kpi "><b>55,672.13</b><span>Total Volume Stok</span></div><div class="kpi val"><b>21,053,478.83</b><span>Total Valuasi Aset</span></div><div class="kpi "><b>9,278.69</b><span>Rata-rata Stok/SKU</span></div><div class="kpi "><b>0</b><span>🔴 Kritis / Habis</span></div><div class="kpi "><b>0</b><span>🟡 Stok Menipis</span></div><div class="kpi kpi-ok"><b>6</b><span>🟢 Stok Aman</span></div><div class="kpi kpi-info"><b>0</b><span>🔵 Overstock</span></div></div><div class="grid"><div class="card"><h3>Distribusi Kesehatan Stok</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Top 10 Barang dengan Stok Tertinggi</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Nilai Valuasi Aset Stok per Kategori</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Analisis Pareto / ABC Inventaris (% Valuasi vs % SKU)</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card wide stock-table-card">
+            <div class="stock-tbl-header">
+                <div>
+                    <h3>Daftar Inventaris Stok Barang</h3>
+                    <div class="muted">Deteksi kolom: Item = <code>Product line</code>, Qty = <code>Unit price</code>, Harga = <code>cogs</code>, Kategori = <code>Branch</code></div>
+                </div>
+                <div class="stock-filters">
+                    <button class="s-tab active" data-filter="all">Semua (6)</button>
+                    <button class="s-tab" data-filter="critical">🔴 Kritis (0)</button>
+                    <button class="s-tab" data-filter="low">🟡 Menipis (0)</button>
+                    <button class="s-tab" data-filter="healthy">🟢 Aman (6)</button>
+                    <button class="s-tab" data-filter="overstock">🔵 Overstock (0)</button>
+                    <button class="s-tab" data-filter="classA">⭐ Kelas A</button>
+                </div>
+            </div>
+            <div class="toolbar" style="margin-top:10px;">
+                <input class="stock-search" placeholder="🔍 Cari nama barang / kategori stok…" style="max-width:320px;">
+            </div>
+            <div class="tablewrap" style="max-height:360px;overflow-y:auto;margin-top:8px;">
+                <table class="data stock-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nama Barang / Produk</th>
+                            <th>Kategori</th>
+                            <th class="r">Stok Saat Ini</th>
+                            <th class="r">Harga Satuan</th>
+                            <th class="r">Total Valuasi</th>
+                            <th>Status Stok</th>
+                            <th class="r">Saran Restock</th>
+                            <th>Prioritas</th>
+                            <th>ABC</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="idx">1</td>
+                        <td><strong>Food and beverages</strong></td>
+                        <td>Giza</td>
+                        <td class="r"><strong>9,745.54</strong></td>
+                        <td class="r">377.21</td>
+                        <td class="r">3,676,066.42</td>
+                        <td><span class="badge" style="background:#10b981;">🟢 Aman</span></td>
+                        <td class="r" style="">0</td>
+                        <td><span style="color:#6b7280;">Normal</span></td>
+                        <td><span class="badge" style="background:#4f46e5;">A</span></td>
+                    </tr>
+                
+                    <tr>
+                        <td class="idx">2</td>
+                        <td><strong>Sports and travel</strong></td>
+                        <td>Cairo</td>
+                        <td class="r"><strong>9,460.88</strong></td>
+                        <td class="r">385.5</td>
+                        <td class="r">3,647,188.16</td>
+                        <td><span class="badge" style="background:#10b981;">🟢 Aman</span></td>
+                        <td class="r" style="">0</td>
+                        <td><span style="color:#6b7280;">Normal</span></td>
+                        <td><span class="badge" style="background:#4f46e5;">A</span></td>
+                    </tr>
+                
+                    <tr>
+                        <td class="idx">3</td>
+                        <td><strong>Fashion accessories</strong></td>
+                        <td>Giza</td>
+                        <td class="r"><strong>10,173.35</strong></td>
+                        <td class="r">352.14</td>
+                        <td class="r">3,582,402.78</td>
+                        <td><span class="badge" style="background:#10b981;">🟢 Aman</span></td>
+                        <td class="r" style="">0</td>
+                        <td><span style="color:#6b7280;">Normal</span></td>
+                        <td><span class="badge" style="background:#4f46e5;">A</span></td>
+                    </tr>
+                
+                    <tr>
+                        <td class="idx">4</td>
+                        <td><strong>Home and lifestyle</strong></td>
+                        <td>Alex</td>
+                        <td class="r"><strong>8,850.71</strong></td>
+                        <td class="r">401.17</td>
+                        <td class="r">3,550,630.48</td>
+                        <td><span class="badge" style="background:#10b981;">🟢 Aman</span></td>
+                        <td class="r" style="">0</td>
+                        <td><span style="color:#6b7280;">Normal</span></td>
+                        <td><span class="badge" style="background:#4f46e5;">A</span></td>
+                    </tr>
+                
+                    <tr>
+                        <td class="idx">5</td>
+                        <td><strong>Electronic accessories</strong></td>
+                        <td>Alex</td>
+                        <td class="r"><strong>9,103.77</strong></td>
+                        <td class="r">378.52</td>
+                        <td class="r">3,445,922.61</td>
+                        <td><span class="badge" style="background:#10b981;">🟢 Aman</span></td>
+                        <td class="r" style="">0</td>
+                        <td><span style="color:#6b7280;">Normal</span></td>
+                        <td><span class="badge" style="background:#0284c7;">B</span></td>
+                    </tr>
+                
+                    <tr>
+                        <td class="idx">6</td>
+                        <td><strong>Health and beauty</strong></td>
+                        <td>Cairo</td>
+                        <td class="r"><strong>8,337.88</strong></td>
+                        <td class="r">377.95</td>
+                        <td class="r">3,151,268.39</td>
+                        <td><span class="badge" style="background:#10b981;">🟢 Aman</span></td>
+                        <td class="r" style="">0</td>
+                        <td><span style="color:#6b7280;">Normal</span></td>
+                        <td><span class="badge" style="background:#64748b;">C</span></td>
+                    </tr>
+                </tbody>
+                </table>
+            </div>
+            <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
+                <span class="stock-row-count muted">Menampilkan 6 dari 6 produk</span>
+                <button class="btn stock-load-more" style="display:none;">Muat 50 item lagi</button>
+            </div>
+        </div></div></section><section class="sec" id="needs"><h2>🎯 Analisis Semua Kebutuhan &amp; Rekomendasi Bisnis</h2><div class="grid"><div class="card wide needs-hero-banner">
+            <div class="needs-hero-content">
+                <div class="needs-hero-text">
+                    <span class="needs-hero-tag">Ringkasan Kebutuhan Pengadaan (Procurement Budget)</span>
+                    <h2>Estimasi Anggaran Dibutuhkan: <span class="needs-budget-highlight">0</span></h2>
+                    <p class="muted">Mencakup rekomendasi restock untuk <strong>0 item berstatus kritis/habis</strong> dan <strong>0 item stok menipis</strong> untuk menjaga kelancaran operasional bisnis.</p>
+                </div>
+            </div>
+        </div><div class="card wide"><h3>📋 Rencana Tindakan Operasional (Action Plan)</h3><div class="needs-action-grid"><div class="needs-action-item" style="border-left: 4px solid rgb(16, 185, 129);">
+                <div class="needs-action-title">🟢 <strong>1. Terbitkan Purchase Order Darurat (Urgent PO)</strong></div>
+                <div class="needs-action-desc muted">Segera lakukan pengadaan untuk 0 item berstatus kritis dengan prioritas utama.</div>
+            </div><div class="needs-action-item" style="border-left: 4px solid rgb(59, 130, 246);">
+                <div class="needs-action-title">🔵 <strong>2. Terapkan Kebijakan Reorder Point (ROP) Otomatis</strong></div>
+                <div class="needs-action-desc muted">Pasang ambang batas minimum pemesanan pada 0 item berstatus stok menipis sebelum mencapai level habis.</div>
+            </div><div class="needs-action-item" style="border-left: 4px solid rgb(16, 185, 129);">
+                <div class="needs-action-title">🟢 <strong>3. Likuidasi Modal &amp; Clearance Sale Overstock</strong></div>
+                <div class="needs-action-desc muted">Kapasitas stok efisien tanpa indikasi penumpukan berlebih.</div>
+            </div><div class="needs-action-item" style="border-left: 4px solid rgb(16, 185, 129);">
+                <div class="needs-action-title">🟢 <strong>4. Pengawasan Ketat Aset Kelas A (Pareto 80/20)</strong></div>
+                <div class="needs-action-desc muted">Fokuskan akurasi stock opname mingguan pada 4 SKU Kelas A yang menyumbang 68.665% nilai keseluruhan.</div>
+            </div></div></div><div class="card"><h3>💡 Wawasan Kebutuhan Operasional</h3><ul class="insights"><li>Estimasi total kebutuhan anggaran pengadaan (Procurement Budget) sebesar 0 untuk merestok 0 SKU prioritas.</li><li>Terdapat 0 item dalam kondisi Kritis/Habis stok yang memerlukan order darurat segera guna mencegah lost sales (kehilangan penjualan).</li><li>Kategori "Giza" memegang porsi nilai perputaran terbesar (7,258,469), disarankan menjaga buffer stock secara konsisten.</li></ul></div><div class="card"><h3>⚠️ Mitigasi Risiko Rantai Pasok (Supply Chain Risk)</h3><ul class="insights"></ul></div></div></section><section class="sec" id="csvhealth"><h2>🩺 Analisis Kualitas &amp; Profil File CSV</h2><div class="grid"><div class="card wide csv-meter-card">
+            <div class="csv-score-header">
+                <div>
+                    <span class="muted" style="text-transform:uppercase;letter-spacing:1px;font-size:11px;">Skor Kesehatan &amp; Kebersihan Data</span>
+                    <div style="font-size:36px;font-weight:800;color:#10b981;line-height:1.2;">
+                        100<span style="font-size:20px;font-weight:500;">/100</span>
+                        <span class="badge" style="font-size:14px;vertical-align:middle;margin-left:12px;background:#10b981;">🟢 Sangat Sehat (Excellent Quality)</span>
+                    </div>
+                </div>
+                <div class="csv-score-pills">
+                    <div class="csv-pill">
+                        <span class="muted">Kelengkapan</span>
+                        <strong>100%</strong>
+                    </div>
+                    <div class="csv-pill">
+                        <span class="muted">Integritas Baris</span>
+                        <strong>100%</strong>
+                    </div>
+                    <div class="csv-pill">
+                        <span class="muted">Konsistensi Tipe</span>
+                        <strong>100%</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="csv-progress-bar" style="background:rgba(128,128,128,.2);height:8px;border-radius:4px;overflow:hidden;margin-top:14px;">
+                <div style="width:100%;height:100%;background:#10b981;border-radius:4px;transition:width .6s ease;"></div>
+            </div>
+        </div><div class="card wide">
+            <h3>✅ Checklist Audit Struktur &amp; Kualitas CSV</h3>
+            <div class="tablewrap" style="margin-top:8px;">
+                <table class="data">
+                    <thead>
+                        <tr>
+                            <th>Kategori Audit</th>
+                            <th>Parameter Pemeriksaan</th>
+                            <th>Hasil &amp; Keterangan</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                                <tr>
+                                    <td><strong>Kelengkapan Nilai</strong></td>
+                                    <td>Missing / Null Values</td>
+                                    <td>Lengkap 100% tanpa sel kosong</td>
+                                    <td><span class="badge" style="background:#10b981;">Lolos (Pass)</span></td>
+                                </tr>
+                            
+                                <tr>
+                                    <td><strong>Integritas Rekor</strong></td>
+                                    <td>Duplikasi Baris (Duplicates)</td>
+                                    <td>Tidak ada baris duplikat</td>
+                                    <td><span class="badge" style="background:#10b981;">Lolos (Pass)</span></td>
+                                </tr>
+                            
+                                <tr>
+                                    <td><strong>Konsistensi Tipe Data</strong></td>
+                                    <td>Struktur Kolom &amp; Tipe Data</td>
+                                    <td>15 kolom bertipe terstruktur (numerik/tanggal/kategori)</td>
+                                    <td><span class="badge" style="background:#10b981;">Lolos (Pass)</span></td>
+                                </tr>
+                            
+                                <tr>
+                                    <td><strong>Deteksi Anomali / Outlier</strong></td>
+                                    <td>Nilai Ekstrem (Numeric Outliers)</td>
+                                    <td>4 kolom memiliki pencilan data (outlier)</td>
+                                    <td><span class="badge" style="background:#ef4444;">Perlu Perbaikan</span></td>
+                                </tr>
+                            
+                                <tr>
+                                    <td><strong>Skema CSV</strong></td>
+                                    <td>Kerapatan &amp; Densitas Data</td>
+                                    <td>17 kolom × 1.000 baris (17.000 nilai terisi)</td>
+                                    <td><span class="badge" style="background:#10b981;">Lolos (Pass)</span></td>
+                                </tr>
+                            
+                    </tbody>
+                </table>
+            </div>
+        </div><div class="card wide">
+            <h3>🧹 Rekomendasi Pembersihan &amp; Optimalisasi CSV</h3>
+            <ul class="insights" style="margin:6px 0 0;">
+                <li>Tinjau kolom dengan outlier: "Tax 5%", "Sales", "cogs".</li>
+            </ul>
+        </div></div></section><section class="sec" id="decisionTree"><h2>🌳 Analisis Pohon Keputusan C4.5</h2><div class="grid"><div class="card"><h3>Perbandingan Kinerja Model (%)</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div><div class="muted" style="font-size: 12px; margin: 0px;">Kappa Cohen 0.028 dan MCC 0.030 mengukur kesesuaian setelah memperhitungkan kebetulan. Entropi target 1.5833 bit dari maksimum 1.5850 bit; kelas mayoritas "Ewallet". Model berada 1.9 poin di atas akurasi dasar.</div></div></div></section><section class="sec" id="notes"><h2>📝 Notes &amp; Observations</h2><div class="grid"><div class="card wide notes-container"><div class="notes-head-bar">
+            <div>
+                <h3>Analysis Notes &amp; Report Comments</h3>
+                <span class="muted">Add custom commentary, business insights, or data caveats. These notes will be saved and included in the PDF export.</span>
+            </div>
+        <button class="btn primary">Add New Note</button></div><div class="notes-list"><div class="note-card">
+                    <div class="note-top">
+                        <input class="note-title-input" type="text" value="Executive Summary &amp; Analysis Notes" placeholder="Note Title…">
+                        <select class="note-cat-select" data-id="default-1">
+                            <option value="Summary" selected="">📋 Summary</option>
+                            <option value="Insight">💡 Insight</option>
+                            <option value="Warning">⚠️ Data Warning</option>
+                            <option value="Action">🎯 Action Item</option>
+                        </select>
+                        <span class="note-date muted">Oct 17, 2026</span>
+                        <button class="ib note-del-btn" title="Delete note">✕</button>
+                    </div>
+                    <textarea class="note-textarea" rows="3" placeholder="Write your observation, conclusion, or methodology details here…">Key takeaways and observations for this dataset:
+- Data completeness and distribution looks solid.
+- Add custom findings and action items here before exporting to PDF.</textarea>
+                    <div class="print-only note-print-content">
+                        <h4>Executive Summary &amp; Analysis Notes <span class="note-badge">Summary</span> <small>(Oct 17, 2026)</small></h4>
+                        <p>Key takeaways and observations for this dataset:<br>- Data completeness and distribution looks solid.<br>- Add custom findings and action items here before exporting to PDF.</p>
+                    </div>
+                </div></div></div></div></section><section class="sec" id="insights"><h2>Automated Insights</h2><div class="grid"><ul class="insights card wide"><li>Dataset contains 1,000 rows and 17 columns (7 numeric, 6 categorical, 1 date).</li><li>🩺 Skor Kualitas File CSV: 100% (🟢 Sangat Sehat (Excellent Quality)).</li><li>✅ No missing values — dataset is complete.</li><li>Column "gross margin percentage" contains only a single constant value.</li><li>🔗 Strong positive correlation between "Tax 5%" and "Sales" (r = 1).</li><li>🔗 Strong positive correlation between "Tax 5%" and "cogs" (r = 1).</li><li>🔗 Strong positive correlation between "Tax 5%" and "gross income" (r = 1).</li><li>🔗 Strong positive correlation between "Sales" and "cogs" (r = 1).</li><li>Date range for "Date": 2019-01-01 → 2019-12-03.</li><li>Most frequent value in "Branch": Alex (34%).</li><li>Most frequent value in "City": Yangon (34%).</li><li>Most frequent value in "Customer type": Member (56%).</li><li>Most frequent value in "Gender": Female (57%).</li><li>Analisis Stok Barang: Terdeteksi 6 produk unik dengan total kuantitas 55,672 unit (Valuasi Aset: 21,053,479).</li><li>📈 Pendapatan total 322.966,75 dari 1000 order (AOV 322,97).</li><li>📈 Margin laba kotor 4.76% (rendah, tinjau harga dan biaya).</li><li>📈 Pendapatan periode terakhir naik 23.32% dibanding periode sebelumnya.</li><li>📈 Periode terbaik 2019-01, terlemah 2019-04.</li><li>📈 Produk teratas "Food and beverages" menyumbang 17.38% pendapatan.</li><li>📈 Pareto: 83.33% produk (5 item) menghasilkan 80% pendapatan; HHI 1669.</li><li>📈 100% pelanggan melakukan pembelian berulang.</li><li>🌳 Decision Tree C4.5: Model klasifikasi dibangun untuk prediksi "Payment" dengan akurasi 36.4% (35 aturan keputusan).</li><li>📊 Feature Importance: "Product line" adalah atribut paling penting (26.2% kontribusi).</li><li>🎯 Akurasi 36.4% berada 1.9 poin di atas akurasi dasar "Ewallet" (34.5%).</li><li>🔁 Validasi silang 5-lipatan: akurasi 32.4% ± 1.9% (akar pohon paling sering "Rating").</li><li>🌿 Struktur pohon: 62 simpul, 35 daun, kedalaman 6, panjang aturan rata-rata 4.8571; 9 subtree dipangkas (daun 54 → 35).</li><li>📐 Ambang numerik dipakai pada 17 simpul, mis. Rating &lt;= 9.95, Unit price &lt;= 11.355, Quantity &lt;= 11.355.</li></ul></div></section><section class="sec" id="table"><h2>Data Table (showing 1,000 of 1,000 rows)</h2><div class="grid"><div class="card wide"><div class="toolbar"><input placeholder="🔍 Search in table…"></div><div class="tablewrap tall"><table class="data"><thead><tr><th>#</th><th data-i="0">Invoice ID</th><th data-i="1">Branch</th><th data-i="2">City</th><th data-i="3">Customer type</th><th data-i="4">Gender</th><th data-i="5">Product line</th><th data-i="6">Unit price</th><th data-i="7">Quantity</th><th data-i="8">Tax 5%</th><th data-i="9">Sales</th><th data-i="10">Date</th><th data-i="11">Time</th><th data-i="12">Payment</th><th data-i="13">cogs</th><th data-i="14">gross margin percentage</th><th data-i="15">gross income</th><th data-i="16">Rating</th></tr></thead><tbody><tr><td class="idx">1</td><td class="">750-67-8428</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">74.69</td><td class="r">7</td><td class="r">26.1415</td><td class="r">548.9715</td><td class="">2019-05-01</td><td class="">1:08:00 PM</td><td class="">Ewallet</td><td class="r">522.83</td><td class="r">4.761904762</td><td class="r">26.1415</td><td class="r">9.1</td></tr><tr><td class="idx">2</td><td class="">226-31-3081</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Normal</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">15.28</td><td class="r">5</td><td class="r">3.82</td><td class="r">80.22</td><td class="">2019-08-03</td><td class="">10:29:00 AM</td><td class="">Cash</td><td class="r">76.4</td><td class="r">4.761904762</td><td class="r">3.82</td><td class="r">9.6</td></tr><tr><td class="idx">3</td><td class="">631-41-3108</td><td class="">Alex</td><td class="">Yangon</td><td class="">Normal</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">46.33</td><td class="r">7</td><td class="r">16.2155</td><td class="r">340.5255</td><td class="">2019-03-03</td><td class="">1:23:00 PM</td><td class="">Credit card</td><td class="r">324.31</td><td class="r">4.761904762</td><td class="r">16.2155</td><td class="r">7.4</td></tr><tr><td class="idx">4</td><td class="">123-19-1176</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">58.22</td><td class="r">8</td><td class="r">23.288</td><td class="r">489.048</td><td class="">2019-01-27</td><td class="">8:33:00 PM</td><td class="">Ewallet</td><td class="r">465.76</td><td class="r">4.761904762</td><td class="r">23.288</td><td class="r">8.4</td></tr><tr><td class="idx">5</td><td class="">373-73-7910</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">86.31</td><td class="r">7</td><td class="r">30.2085</td><td class="r">634.3785</td><td class="">2019-08-02</td><td class="">10:37:00 AM</td><td class="">Ewallet</td><td class="r">604.17</td><td class="r">4.761904762</td><td class="r">30.2085</td><td class="r">5.3</td></tr><tr><td class="idx">6</td><td class="">699-14-3026</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">85.39</td><td class="r">7</td><td class="r">29.8865</td><td class="r">627.6165</td><td class="">2019-03-25</td><td class="">6:30:00 PM</td><td class="">Ewallet</td><td class="r">597.73</td><td class="r">4.761904762</td><td class="r">29.8865</td><td class="r">4.1</td></tr><tr><td class="idx">7</td><td class="">355-53-5943</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">68.84</td><td class="r">6</td><td class="r">20.652</td><td class="r">433.692</td><td class="">2019-02-25</td><td class="">2:36:00 PM</td><td class="">Ewallet</td><td class="r">413.04</td><td class="r">4.761904762</td><td class="r">20.652</td><td class="r">5.8</td></tr><tr><td class="idx">8</td><td class="">315-22-5665</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">73.56</td><td class="r">10</td><td class="r">36.78</td><td class="r">772.38</td><td class="">2019-02-24</td><td class="">11:38:00 AM</td><td class="">Ewallet</td><td class="r">735.6</td><td class="r">4.761904762</td><td class="r">36.78</td><td class="r">8</td></tr><tr><td class="idx">9</td><td class="">665-32-9167</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">36.26</td><td class="r">2</td><td class="r">3.626</td><td class="r">76.146</td><td class="">2019-10-01</td><td class="">5:15:00 PM</td><td class="">Credit card</td><td class="r">72.52</td><td class="r">4.761904762</td><td class="r">3.626</td><td class="r">7.2</td></tr><tr><td class="idx">10</td><td class="">692-92-5582</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">54.84</td><td class="r">3</td><td class="r">8.226</td><td class="r">172.746</td><td class="">2019-02-20</td><td class="">1:27:00 PM</td><td class="">Credit card</td><td class="r">164.52</td><td class="r">4.761904762</td><td class="r">8.226</td><td class="r">5.9</td></tr><tr><td class="idx">11</td><td class="">351-62-0822</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Fashion accessories</td><td class="r">14.48</td><td class="r">4</td><td class="r">2.896</td><td class="r">60.816</td><td class="">2019-06-02</td><td class="">6:07:00 PM</td><td class="">Ewallet</td><td class="r">57.92</td><td class="r">4.761904762</td><td class="r">2.896</td><td class="r">4.5</td></tr><tr><td class="idx">12</td><td class="">529-56-3974</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">25.51</td><td class="r">4</td><td class="r">5.102</td><td class="r">107.142</td><td class="">2019-09-03</td><td class="">5:03:00 PM</td><td class="">Cash</td><td class="r">102.04</td><td class="r">4.761904762</td><td class="r">5.102</td><td class="r">6.8</td></tr><tr><td class="idx">13</td><td class="">365-64-0515</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">46.95</td><td class="r">5</td><td class="r">11.7375</td><td class="r">246.4875</td><td class="">2019-12-02</td><td class="">10:25:00 AM</td><td class="">Ewallet</td><td class="r">234.75</td><td class="r">4.761904762</td><td class="r">11.7375</td><td class="r">7.1</td></tr><tr><td class="idx">14</td><td class="">252-56-2699</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">43.19</td><td class="r">10</td><td class="r">21.595</td><td class="r">453.495</td><td class="">2019-07-02</td><td class="">4:48:00 PM</td><td class="">Ewallet</td><td class="r">431.9</td><td class="r">4.761904762</td><td class="r">21.595</td><td class="r">8.2</td></tr><tr><td class="idx">15</td><td class="">829-34-3910</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">71.38</td><td class="r">10</td><td class="r">35.69</td><td class="r">749.49</td><td class="">2019-03-29</td><td class="">7:21:00 PM</td><td class="">Cash</td><td class="r">713.8</td><td class="r">4.761904762</td><td class="r">35.69</td><td class="r">5.7</td></tr><tr><td class="idx">16</td><td class="">299-46-1805</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">93.72</td><td class="r">6</td><td class="r">28.116</td><td class="r">590.436</td><td class="">2019-01-15</td><td class="">4:19:00 PM</td><td class="">Cash</td><td class="r">562.32</td><td class="r">4.761904762</td><td class="r">28.116</td><td class="r">4.5</td></tr><tr><td class="idx">17</td><td class="">656-95-9349</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">68.93</td><td class="r">7</td><td class="r">24.1255</td><td class="r">506.6355</td><td class="">2019-11-03</td><td class="">11:03:00 AM</td><td class="">Credit card</td><td class="r">482.51</td><td class="r">4.761904762</td><td class="r">24.1255</td><td class="r">4.6</td></tr><tr><td class="idx">18</td><td class="">765-26-6951</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">72.61</td><td class="r">6</td><td class="r">21.783</td><td class="r">457.443</td><td class="">2019-01-01</td><td class="">10:39:00 AM</td><td class="">Credit card</td><td class="r">435.66</td><td class="r">4.761904762</td><td class="r">21.783</td><td class="r">6.9</td></tr><tr><td class="idx">19</td><td class="">329-62-1586</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">54.67</td><td class="r">3</td><td class="r">8.2005</td><td class="r">172.2105</td><td class="">2019-01-21</td><td class="">6:00:00 PM</td><td class="">Credit card</td><td class="r">164.01</td><td class="r">4.761904762</td><td class="r">8.2005</td><td class="r">8.6</td></tr><tr><td class="idx">20</td><td class="">319-50-3348</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">40.3</td><td class="r">2</td><td class="r">4.03</td><td class="r">84.63</td><td class="">2019-11-03</td><td class="">3:30:00 PM</td><td class="">Ewallet</td><td class="r">80.6</td><td class="r">4.761904762</td><td class="r">4.03</td><td class="r">4.4</td></tr><tr><td class="idx">21</td><td class="">300-71-4605</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">86.04</td><td class="r">5</td><td class="r">21.51</td><td class="r">451.71</td><td class="">2019-02-25</td><td class="">11:24:00 AM</td><td class="">Ewallet</td><td class="r">430.2</td><td class="r">4.761904762</td><td class="r">21.51</td><td class="r">4.8</td></tr><tr><td class="idx">22</td><td class="">371-85-5789</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">87.98</td><td class="r">3</td><td class="r">13.197</td><td class="r">277.137</td><td class="">2019-05-03</td><td class="">10:40:00 AM</td><td class="">Ewallet</td><td class="r">263.94</td><td class="r">4.761904762</td><td class="r">13.197</td><td class="r">5.1</td></tr><tr><td class="idx">23</td><td class="">273-16-6619</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">33.2</td><td class="r">2</td><td class="r">3.32</td><td class="r">69.72</td><td class="">2019-03-15</td><td class="">12:20:00 PM</td><td class="">Credit card</td><td class="r">66.4</td><td class="r">4.761904762</td><td class="r">3.32</td><td class="r">4.4</td></tr><tr><td class="idx">24</td><td class="">636-48-8204</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">34.56</td><td class="r">5</td><td class="r">8.64</td><td class="r">181.44</td><td class="">2019-02-17</td><td class="">11:15:00 AM</td><td class="">Ewallet</td><td class="r">172.8</td><td class="r">4.761904762</td><td class="r">8.64</td><td class="r">9.9</td></tr><tr><td class="idx">25</td><td class="">549-59-1358</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">88.63</td><td class="r">3</td><td class="r">13.2945</td><td class="r">279.1845</td><td class="">2019-02-03</td><td class="">5:36:00 PM</td><td class="">Ewallet</td><td class="r">265.89</td><td class="r">4.761904762</td><td class="r">13.2945</td><td class="r">6</td></tr><tr><td class="idx">26</td><td class="">227-03-5010</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">52.59</td><td class="r">8</td><td class="r">21.036</td><td class="r">441.756</td><td class="">2019-03-22</td><td class="">7:20:00 PM</td><td class="">Credit card</td><td class="r">420.72</td><td class="r">4.761904762</td><td class="r">21.036</td><td class="r">8.5</td></tr><tr><td class="idx">27</td><td class="">649-29-6775</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Fashion accessories</td><td class="r">33.52</td><td class="r">1</td><td class="r">1.676</td><td class="r">35.196</td><td class="">2019-08-02</td><td class="">3:31:00 PM</td><td class="">Cash</td><td class="r">33.52</td><td class="r">4.761904762</td><td class="r">1.676</td><td class="r">6.7</td></tr><tr><td class="idx">28</td><td class="">189-17-4241</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Fashion accessories</td><td class="r">87.67</td><td class="r">2</td><td class="r">8.767</td><td class="r">184.107</td><td class="">2019-10-03</td><td class="">12:17:00 PM</td><td class="">Credit card</td><td class="r">175.34</td><td class="r">4.761904762</td><td class="r">8.767</td><td class="r">7.7</td></tr><tr><td class="idx">29</td><td class="">145-94-9061</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">88.36</td><td class="r">5</td><td class="r">22.09</td><td class="r">463.89</td><td class="">2019-01-25</td><td class="">7:48:00 PM</td><td class="">Cash</td><td class="r">441.8</td><td class="r">4.761904762</td><td class="r">22.09</td><td class="r">9.6</td></tr><tr><td class="idx">30</td><td class="">848-62-7243</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">24.89</td><td class="r">9</td><td class="r">11.2005</td><td class="r">235.2105</td><td class="">2019-03-15</td><td class="">3:36:00 PM</td><td class="">Cash</td><td class="r">224.01</td><td class="r">4.761904762</td><td class="r">11.2005</td><td class="r">7.4</td></tr><tr><td class="idx">31</td><td class="">871-79-8483</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Fashion accessories</td><td class="r">94.13</td><td class="r">5</td><td class="r">23.5325</td><td class="r">494.1825</td><td class="">2019-02-25</td><td class="">7:39:00 PM</td><td class="">Credit card</td><td class="r">470.65</td><td class="r">4.761904762</td><td class="r">23.5325</td><td class="r">4.8</td></tr><tr><td class="idx">32</td><td class="">149-71-6266</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">78.07</td><td class="r">9</td><td class="r">35.1315</td><td class="r">737.7615</td><td class="">2019-01-28</td><td class="">12:43:00 PM</td><td class="">Cash</td><td class="r">702.63</td><td class="r">4.761904762</td><td class="r">35.1315</td><td class="r">4.5</td></tr><tr><td class="idx">33</td><td class="">640-49-2076</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">83.78</td><td class="r">8</td><td class="r">33.512</td><td class="r">703.752</td><td class="">2019-10-01</td><td class="">2:49:00 PM</td><td class="">Cash</td><td class="r">670.24</td><td class="r">4.761904762</td><td class="r">33.512</td><td class="r">5.1</td></tr><tr><td class="idx">34</td><td class="">595-11-5460</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">96.58</td><td class="r">2</td><td class="r">9.658</td><td class="r">202.818</td><td class="">2019-03-15</td><td class="">10:12:00 AM</td><td class="">Credit card</td><td class="r">193.16</td><td class="r">4.761904762</td><td class="r">9.658</td><td class="r">5.1</td></tr><tr><td class="idx">35</td><td class="">183-56-6882</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">99.42</td><td class="r">4</td><td class="r">19.884</td><td class="r">417.564</td><td class="">2019-06-02</td><td class="">10:42:00 AM</td><td class="">Ewallet</td><td class="r">397.68</td><td class="r">4.761904762</td><td class="r">19.884</td><td class="r">7.5</td></tr><tr><td class="idx">36</td><td class="">232-16-2483</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">68.12</td><td class="r">1</td><td class="r">3.406</td><td class="r">71.526</td><td class="">2019-07-01</td><td class="">12:28:00 PM</td><td class="">Ewallet</td><td class="r">68.12</td><td class="r">4.761904762</td><td class="r">3.406</td><td class="r">6.8</td></tr><tr><td class="idx">37</td><td class="">129-29-8530</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">62.62</td><td class="r">5</td><td class="r">15.655</td><td class="r">328.755</td><td class="">2019-10-03</td><td class="">7:15:00 PM</td><td class="">Ewallet</td><td class="r">313.1</td><td class="r">4.761904762</td><td class="r">15.655</td><td class="r">7</td></tr><tr><td class="idx">38</td><td class="">272-65-1806</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">60.88</td><td class="r">9</td><td class="r">27.396</td><td class="r">575.316</td><td class="">2019-01-15</td><td class="">5:17:00 PM</td><td class="">Ewallet</td><td class="r">547.92</td><td class="r">4.761904762</td><td class="r">27.396</td><td class="r">4.7</td></tr><tr><td class="idx">39</td><td class="">333-73-7901</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">54.92</td><td class="r">8</td><td class="r">21.968</td><td class="r">461.328</td><td class="">2019-03-23</td><td class="">1:24:00 PM</td><td class="">Ewallet</td><td class="r">439.36</td><td class="r">4.761904762</td><td class="r">21.968</td><td class="r">7.6</td></tr><tr><td class="idx">40</td><td class="">777-82-7220</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">30.12</td><td class="r">8</td><td class="r">12.048</td><td class="r">253.008</td><td class="">2019-03-03</td><td class="">1:01:00 PM</td><td class="">Cash</td><td class="r">240.96</td><td class="r">4.761904762</td><td class="r">12.048</td><td class="r">7.7</td></tr><tr><td class="idx">41</td><td class="">280-35-5823</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">86.72</td><td class="r">1</td><td class="r">4.336</td><td class="r">91.056</td><td class="">2019-01-17</td><td class="">6:45:00 PM</td><td class="">Ewallet</td><td class="r">86.72</td><td class="r">4.761904762</td><td class="r">4.336</td><td class="r">7.9</td></tr><tr><td class="idx">42</td><td class="">554-53-8700</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">56.11</td><td class="r">2</td><td class="r">5.611</td><td class="r">117.831</td><td class="">2019-02-02</td><td class="">10:11:00 AM</td><td class="">Cash</td><td class="r">112.22</td><td class="r">4.761904762</td><td class="r">5.611</td><td class="r">6.3</td></tr><tr><td class="idx">43</td><td class="">354-25-5821</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">69.12</td><td class="r">6</td><td class="r">20.736</td><td class="r">435.456</td><td class="">2019-08-02</td><td class="">1:03:00 PM</td><td class="">Cash</td><td class="r">414.72</td><td class="r">4.761904762</td><td class="r">20.736</td><td class="r">5.6</td></tr><tr><td class="idx">44</td><td class="">228-96-1411</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">98.7</td><td class="r">8</td><td class="r">39.48</td><td class="r">829.08</td><td class="">2019-04-03</td><td class="">8:39:00 PM</td><td class="">Cash</td><td class="r">789.6</td><td class="r">4.761904762</td><td class="r">39.48</td><td class="r">7.6</td></tr><tr><td class="idx">45</td><td class="">617-15-4209</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">15.37</td><td class="r">2</td><td class="r">1.537</td><td class="r">32.277</td><td class="">2019-03-16</td><td class="">7:47:00 PM</td><td class="">Cash</td><td class="r">30.74</td><td class="r">4.761904762</td><td class="r">1.537</td><td class="r">7.2</td></tr><tr><td class="idx">46</td><td class="">132-32-9879</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">93.96</td><td class="r">4</td><td class="r">18.792</td><td class="r">394.632</td><td class="">2019-09-03</td><td class="">6:00:00 PM</td><td class="">Cash</td><td class="r">375.84</td><td class="r">4.761904762</td><td class="r">18.792</td><td class="r">9.5</td></tr><tr><td class="idx">47</td><td class="">370-41-7321</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">56.69</td><td class="r">9</td><td class="r">25.5105</td><td class="r">535.7205</td><td class="">2019-02-27</td><td class="">5:24:00 PM</td><td class="">Credit card</td><td class="r">510.21</td><td class="r">4.761904762</td><td class="r">25.5105</td><td class="r">8.4</td></tr><tr><td class="idx">48</td><td class="">727-46-3608</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">20.01</td><td class="r">9</td><td class="r">9.0045</td><td class="r">189.0945</td><td class="">2019-06-02</td><td class="">3:47:00 PM</td><td class="">Ewallet</td><td class="r">180.09</td><td class="r">4.761904762</td><td class="r">9.0045</td><td class="r">4.1</td></tr><tr><td class="idx">49</td><td class="">669-54-1719</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">18.93</td><td class="r">6</td><td class="r">5.679</td><td class="r">119.259</td><td class="">2019-10-02</td><td class="">12:45:00 PM</td><td class="">Credit card</td><td class="r">113.58</td><td class="r">4.761904762</td><td class="r">5.679</td><td class="r">8.1</td></tr><tr><td class="idx">50</td><td class="">574-22-5561</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Fashion accessories</td><td class="r">82.63</td><td class="r">10</td><td class="r">41.315</td><td class="r">867.615</td><td class="">2019-03-19</td><td class="">5:08:00 PM</td><td class="">Ewallet</td><td class="r">826.3</td><td class="r">4.761904762</td><td class="r">41.315</td><td class="r">7.9</td></tr><tr><td class="idx">51</td><td class="">326-78-5178</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">91.4</td><td class="r">7</td><td class="r">31.99</td><td class="r">671.79</td><td class="">2019-03-02</td><td class="">10:19:00 AM</td><td class="">Cash</td><td class="r">639.8</td><td class="r">4.761904762</td><td class="r">31.99</td><td class="r">9.5</td></tr><tr><td class="idx">52</td><td class="">162-48-8011</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">44.59</td><td class="r">5</td><td class="r">11.1475</td><td class="r">234.0975</td><td class="">2019-10-02</td><td class="">3:10:00 PM</td><td class="">Cash</td><td class="r">222.95</td><td class="r">4.761904762</td><td class="r">11.1475</td><td class="r">8.5</td></tr><tr><td class="idx">53</td><td class="">616-24-2851</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Fashion accessories</td><td class="r">17.87</td><td class="r">4</td><td class="r">3.574</td><td class="r">75.054</td><td class="">2019-03-22</td><td class="">2:42:00 PM</td><td class="">Ewallet</td><td class="r">71.48</td><td class="r">4.761904762</td><td class="r">3.574</td><td class="r">6.5</td></tr><tr><td class="idx">54</td><td class="">778-71-5554</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Fashion accessories</td><td class="r">15.43</td><td class="r">1</td><td class="r">0.7715</td><td class="r">16.2015</td><td class="">2019-01-25</td><td class="">3:46:00 PM</td><td class="">Credit card</td><td class="r">15.43</td><td class="r">4.761904762</td><td class="r">0.7715</td><td class="r">6.1</td></tr><tr><td class="idx">55</td><td class="">242-55-6721</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">16.16</td><td class="r">2</td><td class="r">1.616</td><td class="r">33.936</td><td class="">2019-07-03</td><td class="">11:49:00 AM</td><td class="">Ewallet</td><td class="r">32.32</td><td class="r">4.761904762</td><td class="r">1.616</td><td class="r">6.5</td></tr><tr><td class="idx">56</td><td class="">399-46-5918</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">85.98</td><td class="r">8</td><td class="r">34.392</td><td class="r">722.232</td><td class="">2019-02-28</td><td class="">7:01:00 PM</td><td class="">Cash</td><td class="r">687.84</td><td class="r">4.761904762</td><td class="r">34.392</td><td class="r">8.2</td></tr><tr><td class="idx">57</td><td class="">106-35-6779</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">44.34</td><td class="r">2</td><td class="r">4.434</td><td class="r">93.114</td><td class="">2019-03-27</td><td class="">11:26:00 AM</td><td class="">Cash</td><td class="r">88.68</td><td class="r">4.761904762</td><td class="r">4.434</td><td class="r">5.8</td></tr><tr><td class="idx">58</td><td class="">635-40-6220</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">89.6</td><td class="r">8</td><td class="r">35.84</td><td class="r">752.64</td><td class="">2019-07-02</td><td class="">11:28:00 AM</td><td class="">Ewallet</td><td class="r">716.8</td><td class="r">4.761904762</td><td class="r">35.84</td><td class="r">6.6</td></tr><tr><td class="idx">59</td><td class="">817-48-8732</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">72.35</td><td class="r">10</td><td class="r">36.175</td><td class="r">759.675</td><td class="">2019-01-20</td><td class="">3:55:00 PM</td><td class="">Cash</td><td class="r">723.5</td><td class="r">4.761904762</td><td class="r">36.175</td><td class="r">5.4</td></tr><tr><td class="idx">60</td><td class="">120-06-4233</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">30.61</td><td class="r">6</td><td class="r">9.183</td><td class="r">192.843</td><td class="">2019-12-03</td><td class="">8:36:00 PM</td><td class="">Cash</td><td class="r">183.66</td><td class="r">4.761904762</td><td class="r">9.183</td><td class="r">9.3</td></tr><tr><td class="idx">61</td><td class="">285-68-5083</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">24.74</td><td class="r">3</td><td class="r">3.711</td><td class="r">77.931</td><td class="">2019-02-15</td><td class="">5:47:00 PM</td><td class="">Credit card</td><td class="r">74.22</td><td class="r">4.761904762</td><td class="r">3.711</td><td class="r">10</td></tr><tr><td class="idx">62</td><td class="">803-83-5989</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">55.73</td><td class="r">6</td><td class="r">16.719</td><td class="r">351.099</td><td class="">2019-02-24</td><td class="">10:55:00 AM</td><td class="">Ewallet</td><td class="r">334.38</td><td class="r">4.761904762</td><td class="r">16.719</td><td class="r">7</td></tr><tr><td class="idx">63</td><td class="">347-34-2234</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">55.07</td><td class="r">9</td><td class="r">24.7815</td><td class="r">520.4115</td><td class="">2019-03-02</td><td class="">1:40:00 PM</td><td class="">Ewallet</td><td class="r">495.63</td><td class="r">4.761904762</td><td class="r">24.7815</td><td class="r">10</td></tr><tr><td class="idx">64</td><td class="">199-75-8169</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">15.81</td><td class="r">10</td><td class="r">7.905</td><td class="r">166.005</td><td class="">2019-06-03</td><td class="">12:27:00 PM</td><td class="">Credit card</td><td class="r">158.1</td><td class="r">4.761904762</td><td class="r">7.905</td><td class="r">8.6</td></tr><tr><td class="idx">65</td><td class="">853-23-2453</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">75.74</td><td class="r">4</td><td class="r">15.148</td><td class="r">318.108</td><td class="">2019-02-14</td><td class="">2:35:00 PM</td><td class="">Cash</td><td class="r">302.96</td><td class="r">4.761904762</td><td class="r">15.148</td><td class="r">7.6</td></tr><tr><td class="idx">66</td><td class="">877-22-3308</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">15.87</td><td class="r">10</td><td class="r">7.935</td><td class="r">166.635</td><td class="">2019-03-13</td><td class="">4:40:00 PM</td><td class="">Cash</td><td class="r">158.7</td><td class="r">4.761904762</td><td class="r">7.935</td><td class="r">5.8</td></tr><tr><td class="idx">67</td><td class="">838-78-4295</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">33.47</td><td class="r">2</td><td class="r">3.347</td><td class="r">70.287</td><td class="">2019-10-02</td><td class="">3:43:00 PM</td><td class="">Ewallet</td><td class="r">66.94</td><td class="r">4.761904762</td><td class="r">3.347</td><td class="r">6.7</td></tr><tr><td class="idx">68</td><td class="">109-28-2512</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Fashion accessories</td><td class="r">97.61</td><td class="r">6</td><td class="r">29.283</td><td class="r">614.943</td><td class="">2019-07-01</td><td class="">3:01:00 PM</td><td class="">Ewallet</td><td class="r">585.66</td><td class="r">4.761904762</td><td class="r">29.283</td><td class="r">9.9</td></tr><tr><td class="idx">69</td><td class="">232-11-3025</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">78.77</td><td class="r">10</td><td class="r">39.385</td><td class="r">827.085</td><td class="">2019-01-24</td><td class="">10:04:00 AM</td><td class="">Cash</td><td class="r">787.7</td><td class="r">4.761904762</td><td class="r">39.385</td><td class="r">6.4</td></tr><tr><td class="idx">70</td><td class="">382-03-4532</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">18.33</td><td class="r">1</td><td class="r">0.9165</td><td class="r">19.2465</td><td class="">2019-02-02</td><td class="">6:50:00 PM</td><td class="">Cash</td><td class="r">18.33</td><td class="r">4.761904762</td><td class="r">0.9165</td><td class="r">4.3</td></tr><tr><td class="idx">71</td><td class="">393-65-2792</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">89.48</td><td class="r">10</td><td class="r">44.74</td><td class="r">939.54</td><td class="">2019-06-01</td><td class="">12:46:00 PM</td><td class="">Credit card</td><td class="r">894.8</td><td class="r">4.761904762</td><td class="r">44.74</td><td class="r">9.6</td></tr><tr><td class="idx">72</td><td class="">796-12-2025</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Fashion accessories</td><td class="r">62.12</td><td class="r">10</td><td class="r">31.06</td><td class="r">652.26</td><td class="">2019-11-02</td><td class="">4:19:00 PM</td><td class="">Cash</td><td class="r">621.2</td><td class="r">4.761904762</td><td class="r">31.06</td><td class="r">5.9</td></tr><tr><td class="idx">73</td><td class="">510-95-6347</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">48.52</td><td class="r">3</td><td class="r">7.278</td><td class="r">152.838</td><td class="">2019-05-03</td><td class="">6:17:00 PM</td><td class="">Ewallet</td><td class="r">145.56</td><td class="r">4.761904762</td><td class="r">7.278</td><td class="r">4</td></tr><tr><td class="idx">74</td><td class="">841-35-6630</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">75.91</td><td class="r">6</td><td class="r">22.773</td><td class="r">478.233</td><td class="">2019-09-03</td><td class="">6:21:00 PM</td><td class="">Cash</td><td class="r">455.46</td><td class="r">4.761904762</td><td class="r">22.773</td><td class="r">8.7</td></tr><tr><td class="idx">75</td><td class="">287-21-9091</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">74.67</td><td class="r">9</td><td class="r">33.6015</td><td class="r">705.6315</td><td class="">2019-01-22</td><td class="">10:55:00 AM</td><td class="">Ewallet</td><td class="r">672.03</td><td class="r">4.761904762</td><td class="r">33.6015</td><td class="r">9.4</td></tr><tr><td class="idx">76</td><td class="">732-94-0499</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">41.65</td><td class="r">10</td><td class="r">20.825</td><td class="r">437.325</td><td class="">2019-01-13</td><td class="">5:04:00 PM</td><td class="">Credit card</td><td class="r">416.5</td><td class="r">4.761904762</td><td class="r">20.825</td><td class="r">5.4</td></tr><tr><td class="idx">77</td><td class="">263-10-3913</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Fashion accessories</td><td class="r">49.04</td><td class="r">9</td><td class="r">22.068</td><td class="r">463.428</td><td class="">2019-09-01</td><td class="">2:20:00 PM</td><td class="">Credit card</td><td class="r">441.36</td><td class="r">4.761904762</td><td class="r">22.068</td><td class="r">8.6</td></tr><tr><td class="idx">78</td><td class="">381-20-0914</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Fashion accessories</td><td class="r">20.01</td><td class="r">9</td><td class="r">9.0045</td><td class="r">189.0945</td><td class="">2019-12-01</td><td class="">3:48:00 PM</td><td class="">Credit card</td><td class="r">180.09</td><td class="r">4.761904762</td><td class="r">9.0045</td><td class="r">5.7</td></tr><tr><td class="idx">79</td><td class="">829-49-1914</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">78.31</td><td class="r">10</td><td class="r">39.155</td><td class="r">822.255</td><td class="">2019-05-03</td><td class="">4:24:00 PM</td><td class="">Ewallet</td><td class="r">783.1</td><td class="r">4.761904762</td><td class="r">39.155</td><td class="r">6.6</td></tr><tr><td class="idx">80</td><td class="">756-01-7507</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">20.38</td><td class="r">5</td><td class="r">5.095</td><td class="r">106.995</td><td class="">2019-01-22</td><td class="">6:56:00 PM</td><td class="">Cash</td><td class="r">101.9</td><td class="r">4.761904762</td><td class="r">5.095</td><td class="r">6</td></tr><tr><td class="idx">81</td><td class="">870-72-4431</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">99.19</td><td class="r">6</td><td class="r">29.757</td><td class="r">624.897</td><td class="">2019-01-21</td><td class="">2:42:00 PM</td><td class="">Credit card</td><td class="r">595.14</td><td class="r">4.761904762</td><td class="r">29.757</td><td class="r">5.5</td></tr><tr><td class="idx">82</td><td class="">847-38-7188</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">96.68</td><td class="r">3</td><td class="r">14.502</td><td class="r">304.542</td><td class="">2019-01-26</td><td class="">7:56:00 PM</td><td class="">Ewallet</td><td class="r">290.04</td><td class="r">4.761904762</td><td class="r">14.502</td><td class="r">6.4</td></tr><tr><td class="idx">83</td><td class="">480-63-2856</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">19.25</td><td class="r">8</td><td class="r">7.7</td><td class="r">161.7</td><td class="">2019-01-23</td><td class="">6:37:00 PM</td><td class="">Ewallet</td><td class="r">154</td><td class="r">4.761904762</td><td class="r">7.7</td><td class="r">6.6</td></tr><tr><td class="idx">84</td><td class="">787-56-0757</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">80.36</td><td class="r">4</td><td class="r">16.072</td><td class="r">337.512</td><td class="">2019-02-23</td><td class="">6:45:00 PM</td><td class="">Credit card</td><td class="r">321.44</td><td class="r">4.761904762</td><td class="r">16.072</td><td class="r">8.3</td></tr><tr><td class="idx">85</td><td class="">360-39-5055</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">48.91</td><td class="r">5</td><td class="r">12.2275</td><td class="r">256.7775</td><td class="">2019-09-03</td><td class="">10:17:00 AM</td><td class="">Cash</td><td class="r">244.55</td><td class="r">4.761904762</td><td class="r">12.2275</td><td class="r">6.6</td></tr><tr><td class="idx">86</td><td class="">730-50-9884</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">83.06</td><td class="r">7</td><td class="r">29.071</td><td class="r">610.491</td><td class="">2019-05-03</td><td class="">2:31:00 PM</td><td class="">Ewallet</td><td class="r">581.42</td><td class="r">4.761904762</td><td class="r">29.071</td><td class="r">4</td></tr><tr><td class="idx">87</td><td class="">362-58-8315</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Fashion accessories</td><td class="r">76.52</td><td class="r">5</td><td class="r">19.13</td><td class="r">401.73</td><td class="">2019-03-25</td><td class="">10:23:00 AM</td><td class="">Cash</td><td class="r">382.6</td><td class="r">4.761904762</td><td class="r">19.13</td><td class="r">9.9</td></tr><tr><td class="idx">88</td><td class="">633-44-8566</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">49.38</td><td class="r">7</td><td class="r">17.283</td><td class="r">362.943</td><td class="">2019-03-27</td><td class="">8:35:00 PM</td><td class="">Credit card</td><td class="r">345.66</td><td class="r">4.761904762</td><td class="r">17.283</td><td class="r">7.3</td></tr><tr><td class="idx">89</td><td class="">504-35-8843</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">42.47</td><td class="r">1</td><td class="r">2.1235</td><td class="r">44.5935</td><td class="">2019-02-01</td><td class="">4:57:00 PM</td><td class="">Cash</td><td class="r">42.47</td><td class="r">4.761904762</td><td class="r">2.1235</td><td class="r">5.7</td></tr><tr><td class="idx">90</td><td class="">318-68-5053</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">76.99</td><td class="r">6</td><td class="r">23.097</td><td class="r">485.037</td><td class="">2019-02-27</td><td class="">5:55:00 PM</td><td class="">Cash</td><td class="r">461.94</td><td class="r">4.761904762</td><td class="r">23.097</td><td class="r">6.1</td></tr><tr><td class="idx">91</td><td class="">565-80-5980</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">47.38</td><td class="r">4</td><td class="r">9.476</td><td class="r">198.996</td><td class="">2019-01-23</td><td class="">10:25:00 AM</td><td class="">Cash</td><td class="r">189.52</td><td class="r">4.761904762</td><td class="r">9.476</td><td class="r">7.1</td></tr><tr><td class="idx">92</td><td class="">225-32-0908</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">44.86</td><td class="r">10</td><td class="r">22.43</td><td class="r">471.03</td><td class="">2019-01-26</td><td class="">7:54:00 PM</td><td class="">Ewallet</td><td class="r">448.6</td><td class="r">4.761904762</td><td class="r">22.43</td><td class="r">8.2</td></tr><tr><td class="idx">93</td><td class="">873-51-0671</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Sports and travel</td><td class="r">21.98</td><td class="r">7</td><td class="r">7.693</td><td class="r">161.553</td><td class="">2019-10-01</td><td class="">4:42:00 PM</td><td class="">Ewallet</td><td class="r">153.86</td><td class="r">4.761904762</td><td class="r">7.693</td><td class="r">5.1</td></tr><tr><td class="idx">94</td><td class="">152-08-9985</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">64.36</td><td class="r">9</td><td class="r">28.962</td><td class="r">608.202</td><td class="">2019-12-03</td><td class="">12:09:00 PM</td><td class="">Credit card</td><td class="r">579.24</td><td class="r">4.761904762</td><td class="r">28.962</td><td class="r">8.6</td></tr><tr><td class="idx">95</td><td class="">512-91-0811</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">89.75</td><td class="r">1</td><td class="r">4.4875</td><td class="r">94.2375</td><td class="">2019-06-02</td><td class="">8:05:00 PM</td><td class="">Credit card</td><td class="r">89.75</td><td class="r">4.761904762</td><td class="r">4.4875</td><td class="r">6.6</td></tr><tr><td class="idx">96</td><td class="">594-34-4444</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">97.16</td><td class="r">1</td><td class="r">4.858</td><td class="r">102.018</td><td class="">2019-08-03</td><td class="">8:38:00 PM</td><td class="">Ewallet</td><td class="r">97.16</td><td class="r">4.761904762</td><td class="r">4.858</td><td class="r">7.2</td></tr><tr><td class="idx">97</td><td class="">766-85-7061</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Health and beauty</td><td class="r">87.87</td><td class="r">10</td><td class="r">43.935</td><td class="r">922.635</td><td class="">2019-03-29</td><td class="">10:25:00 AM</td><td class="">Ewallet</td><td class="r">878.7</td><td class="r">4.761904762</td><td class="r">43.935</td><td class="r">5.1</td></tr><tr><td class="idx">98</td><td class="">871-39-9221</td><td class="">Giza</td><td class="">Naypyitaw</td><td class="">Member</td><td class="">Female</td><td class="">Electronic accessories</td><td class="r">12.45</td><td class="r">6</td><td class="r">3.735</td><td class="r">78.435</td><td class="">2019-09-02</td><td class="">1:11:00 PM</td><td class="">Cash</td><td class="r">74.7</td><td class="r">4.761904762</td><td class="r">3.735</td><td class="r">4.1</td></tr><tr><td class="idx">99</td><td class="">865-92-6136</td><td class="">Alex</td><td class="">Yangon</td><td class="">Member</td><td class="">Female</td><td class="">Food and beverages</td><td class="r">52.75</td><td class="r">3</td><td class="r">7.9125</td><td class="r">166.1625</td><td class="">2019-03-23</td><td class="">10:16:00 AM</td><td class="">Ewallet</td><td class="r">158.25</td><td class="r">4.761904762</td><td class="r">7.9125</td><td class="r">9.3</td></tr><tr><td class="idx">100</td><td class="">733-01-9107</td><td class="">Cairo</td><td class="">Mandalay</td><td class="">Member</td><td class="">Female</td><td class="">Home and lifestyle</td><td class="r">82.7</td><td class="r">6</td><td class="r">24.81</td><td class="r">521.01</td><td class="">2019-05-03</td><td class="">6:14:00 PM</td><td class="">Cash</td><td class="r">496.2</td><td class="r">4.761904762</td><td class="r">24.81</td><td class="r">7.4</td></tr></tbody></table></div><button class="btn">Load 200 more rows</button></div></div></section><section class="sec" id="charts"><h2>Visualizations</h2><div class="grid"><div class="card"><h3>Average Unit price by Customer type</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Average Quantity by Customer type</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Average Unit price by Gender</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Average Quantity by Gender</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Trend of Unit price by month</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Trend of Quantity by month</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Gender × Customer type (Stacked)</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Gender × Customer type (Grouped)</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Distribution of Branch</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Distribution of City</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Distribution of Customer type</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Distribution of Gender</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Polar Area: Branch</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Record Count per Period Date</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Tax 5% vs Sales (r = 1)</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Tax 5% vs cogs (r = 1)</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Tax 5% vs gross income (r = 1)</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div><div class="card"><h3>Sales vs cogs (r = 1)</h3><div class="cbox" style="height: 260px;"><canvas></canvas></div></div></div></section><section class="sec" id="columns"><h2>Column Details</h2><div class="grid"><div class="card"><h3>Invoice ID <span class="badge t-text">Text</span></h3><div class="muted">1,000 populated · 0 missing · 1,000 unique</div><div class="muted">Free text · length 11–11 characters.</div></div><div class="card"><h3>Branch <span class="badge t-category">Category</span></h3><div class="muted">1,000 populated · 0 missing · 3 unique</div><div class="cbox" style="height: 140px;"><canvas></canvas></div></div><div class="card"><h3>City <span class="badge t-category">Category</span></h3><div class="muted">1,000 populated · 0 missing · 3 unique</div><div class="cbox" style="height: 140px;"><canvas></canvas></div></div><div class="card"><h3>Customer type <span class="badge t-category">Category</span></h3><div class="muted">1,000 populated · 0 missing · 2 unique</div><div class="cbox" style="height: 140px;"><canvas></canvas></div></div><div class="card"><h3>Gender <span class="badge t-category">Category</span></h3><div class="muted">1,000 populated · 0 missing · 2 unique</div><div class="cbox" style="height: 140px;"><canvas></canvas></div></div><div class="card"><h3>Product line <span class="badge t-category">Category</span></h3><div class="muted">1,000 populated · 0 missing · 6 unique</div><div class="cbox" style="height: 140px;"><canvas></canvas></div></div><div class="card"><h3>Unit price <span class="badge t-number">Decimal</span></h3><div class="muted">1,000 populated · 0 missing · 943 unique</div><table class="stats"><tbody><tr><td>Min</td><td>10.08</td><td>Q1</td><td>32.88</td><td>Median</td><td>55.23</td></tr><tr><td>Mean</td><td>55.67</td><td>Q3</td><td>77.94</td><td>Max</td><td>99.96</td></tr><tr><td>Std</td><td>26.5</td><td>Skew</td><td>0.01</td><td>Outliers</td><td>0</td></tr></tbody></table><div class="box"><div class="whisk" style="left:0%;width:100%"></div><div class="iqr" style="left:25.361593235425012%;width:50.13351134846463%"></div><div class="med" style="left:50.23364485981309%"></div></div><div class="cbox" style="height: 180px;"><canvas></canvas></div></div><div class="card"><h3>Quantity <span class="badge t-integer">Integer</span></h3><div class="muted">1,000 populated · 0 missing · 10 unique</div><table class="stats"><tbody><tr><td>Min</td><td>1</td><td>Q1</td><td>3</td><td>Median</td><td>5</td></tr><tr><td>Mean</td><td>5.51</td><td>Q3</td><td>8</td><td>Max</td><td>10</td></tr><tr><td>Std</td><td>2.92</td><td>Skew</td><td>0.01</td><td>Outliers</td><td>0</td></tr></tbody></table><div class="box"><div class="whisk" style="left:0%;width:100%"></div><div class="iqr" style="left:22.22222222222222%;width:55.555555555555564%"></div><div class="med" style="left:44.44444444444444%"></div></div><div class="cbox" style="height: 180px;"><canvas></canvas></div></div><div class="card"><h3>Tax 5% <span class="badge t-number">Decimal</span></h3><div class="muted">1,000 populated · 0 missing · 990 unique</div><table class="stats"><tbody><tr><td>Min</td><td>0.51</td><td>Q1</td><td>5.93</td><td>Median</td><td>12.09</td></tr><tr><td>Mean</td><td>15.38</td><td>Q3</td><td>22.45</td><td>Max</td><td>49.65</td></tr><tr><td>Std</td><td>11.71</td><td>Skew</td><td>0.89</td><td>Outliers</td><td>9</td></tr></tbody></table><div class="box"><div class="whisk" style="left:0%;width:95.06730563780104%"></div><div class="iqr" style="left:11.022252068007692%;width:33.61720745194998%"></div><div class="med" style="left:23.563586785100167%"></div></div><div class="cbox" style="height: 180px;"><canvas></canvas></div></div><div class="card"><h3>Sales <span class="badge t-number">Decimal</span></h3><div class="muted">1,000 populated · 0 missing · 990 unique</div><table class="stats"><tbody><tr><td>Min</td><td>10.68</td><td>Q1</td><td>124.42</td><td>Median</td><td>253.85</td></tr><tr><td>Mean</td><td>322.97</td><td>Q3</td><td>471.35</td><td>Max</td><td>1,042.65</td></tr><tr><td>Std</td><td>245.89</td><td>Skew</td><td>0.89</td><td>Outliers</td><td>9</td></tr></tbody></table><div class="box"><div class="whisk" style="left:0%;width:95.06691803019753%"></div><div class="iqr" style="left:11.021961362305062%;width:33.61798266715699%"></div><div class="med" style="left:23.56358678510017%"></div></div><div class="cbox" style="height: 180px;"><canvas></canvas></div></div><div class="card"><h3>Date <span class="badge t-date">Date</span></h3><div class="muted">1,000 populated · 0 missing · 89 unique</div><div class="muted">2019-01-01 → 2019-12-03</div><div class="cbox" style="height: 180px;"><canvas></canvas></div></div><div class="card"><h3>Time <span class="badge t-text">Text</span></h3><div class="muted">1,000 populated · 0 missing · 506 unique</div><div class="cbox" style="height: 330px;"><canvas></canvas></div></div><div class="card"><h3>Payment <span class="badge t-category">Category</span></h3><div class="muted">1,000 populated · 0 missing · 3 unique</div><div class="cbox" style="height: 140px;"><canvas></canvas></div></div><div class="card"><h3>cogs <span class="badge t-number">Decimal</span></h3><div class="muted">1,000 populated · 0 missing · 990 unique</div><table class="stats"><tbody><tr><td>Min</td><td>10.17</td><td>Q1</td><td>118.5</td><td>Median</td><td>241.76</td></tr><tr><td>Mean</td><td>307.59</td><td>Q3</td><td>448.91</td><td>Max</td><td>993</td></tr><tr><td>Std</td><td>234.18</td><td>Skew</td><td>0.89</td><td>Outliers</td><td>9</td></tr></tbody></table><div class="box"><div class="whisk" style="left:0%;width:95.06689864981736%"></div><div class="iqr" style="left:11.022048574015852%;width:33.61791968092142%"></div><div class="med" style="left:23.563586785100167%"></div></div><div class="cbox" style="height: 180px;"><canvas></canvas></div></div><div class="card"><h3>gross margin percentage <span class="badge t-number">Decimal</span></h3><div class="muted">1,000 populated · 0 missing · 1 unique</div><table class="stats"><tbody><tr><td>Min</td><td>4.76</td><td>Q1</td><td>4.76</td><td>Median</td><td>4.76</td></tr><tr><td>Mean</td><td>4.76</td><td>Q3</td><td>4.76</td><td>Max</td><td>4.76</td></tr><tr><td>Std</td><td>0</td><td>Skew</td><td>-1</td><td>Outliers</td><td>0</td></tr></tbody></table><div class="box"><div class="whisk" style="left:0.009523799999922034%;width:-0.009523799999922034%"></div><div class="iqr" style="left:0.009523799999922034%;width:0%"></div><div class="med" style="left:0.009523799999922034%"></div></div><div class="cbox" style="height: 180px;"><canvas></canvas></div></div><div class="card"><h3>gross income <span class="badge t-number">Decimal</span></h3><div class="muted">1,000 populated · 0 missing · 990 unique</div><table class="stats"><tbody><tr><td>Min</td><td>0.51</td><td>Q1</td><td>5.93</td><td>Median</td><td>12.09</td></tr><tr><td>Mean</td><td>15.38</td><td>Q3</td><td>22.45</td><td>Max</td><td>49.65</td></tr><tr><td>Std</td><td>11.71</td><td>Skew</td><td>0.89</td><td>Outliers</td><td>9</td></tr></tbody></table><div class="box"><div class="whisk" style="left:0%;width:95.06730563780104%"></div><div class="iqr" style="left:11.022252068007692%;width:33.61720745194998%"></div><div class="med" style="left:23.563586785100167%"></div></div><div class="cbox" style="height: 180px;"><canvas></canvas></div></div><div class="card"><h3>Rating <span class="badge t-number">Decimal</span></h3><div class="muted">1,000 populated · 0 missing · 61 unique</div><table class="stats"><tbody><tr><td>Min</td><td>4</td><td>Q1</td><td>5.5</td><td>Median</td><td>7</td></tr><tr><td>Mean</td><td>6.97</td><td>Q3</td><td>8.5</td><td>Max</td><td>10</td></tr><tr><td>Std</td><td>1.72</td><td>Skew</td><td>0.01</td><td>Outliers</td><td>0</td></tr></tbody></table><div class="box"><div class="whisk" style="left:0%;width:100%"></div><div class="iqr" style="left:25%;width:50%"></div><div class="med" style="left:50%"></div></div><div class="cbox" style="height: 180px;"><canvas></canvas></div></div></div></section><section class="sec" id="correlation"><h2>Correlation Matrix (Pearson)</h2><div class="grid"><div class="card wide tablewrap"><table class="heat"><tbody><tr><th></th><th>Unit price</th><th>Quantity</th><th>Tax 5%</th><th>Sales</th><th>cogs</th><th>gross income</th><th>Rating</th></tr><tr><th>Unit price</th><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(78,121,167,0.011)">0.01</td><td style="background:rgba(78,121,167,0.634)">0.63</td><td style="background:rgba(78,121,167,0.634)">0.63</td><td style="background:rgba(78,121,167,0.634)">0.63</td><td style="background:rgba(78,121,167,0.634)">0.63</td><td style="background:rgba(225,87,89,0.009)">-0.01</td></tr><tr><th>Quantity</th><td style="background:rgba(78,121,167,0.011)">0.01</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(78,121,167,0.706)">0.71</td><td style="background:rgba(78,121,167,0.706)">0.71</td><td style="background:rgba(78,121,167,0.706)">0.71</td><td style="background:rgba(78,121,167,0.706)">0.71</td><td style="background:rgba(225,87,89,0.016)">-0.02</td></tr><tr><th>Tax 5%</th><td style="background:rgba(78,121,167,0.634)">0.63</td><td style="background:rgba(78,121,167,0.706)">0.71</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(225,87,89,0.036)">-0.04</td></tr><tr><th>Sales</th><td style="background:rgba(78,121,167,0.634)">0.63</td><td style="background:rgba(78,121,167,0.706)">0.71</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(225,87,89,0.036)">-0.04</td></tr><tr><th>cogs</th><td style="background:rgba(78,121,167,0.634)">0.63</td><td style="background:rgba(78,121,167,0.706)">0.71</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(225,87,89,0.036)">-0.04</td></tr><tr><th>gross income</th><td style="background:rgba(78,121,167,0.634)">0.63</td><td style="background:rgba(78,121,167,0.706)">0.71</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(78,121,167,1)">1.00</td><td style="background:rgba(225,87,89,0.036)">-0.04</td></tr><tr><th>Rating</th><td style="background:rgba(225,87,89,0.009)">-0.01</td><td style="background:rgba(225,87,89,0.016)">-0.02</td><td style="background:rgba(225,87,89,0.036)">-0.04</td><td style="background:rgba(225,87,89,0.036)">-0.04</td><td style="background:rgba(225,87,89,0.036)">-0.04</td><td style="background:rgba(225,87,89,0.036)">-0.04</td><td style="background:rgba(78,121,167,1)">1.00</td></tr></tbody></table><div class="muted">Blue = positive correlation · Red = negative correlation</div></div></div></section></div></body></html>

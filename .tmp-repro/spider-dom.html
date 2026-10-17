@@ -1,0 +1,251 @@
+﻿<!DOCTYPE html>
+<html lang="id"><head>
+<meta charset="utf-8">
+<title>Uji Spider</title>
+<link rel="stylesheet" href="../media/spider.css">
+<style>
+  body { font-family: "Segoe UI", sans-serif; margin: 0; padding: 0 28px 80px; background: #1e1e1e; color: #ddd; }
+  #jejak { background: #111; color: #9ae6b4; font: 12px/1.5 monospace; padding: 8px; white-space: pre-wrap; margin: 10px 0; }
+  section.sec { margin: 18px 0; border: 1px solid #333; border-radius: 8px; padding: 10px; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .card { border: 1px solid #333; border-radius: 8px; padding: 10px; background: #262626; }
+  .kpis { display: flex; gap: 8px; }
+  .kpi { border: 1px solid #333; border-radius: 8px; padding: 8px; }
+  .btn { padding: 5px 10px; border-radius: 6px; border: 1px solid #444; background: #333; color: #eee; cursor: pointer; }
+  nav a { color: #7cb7ff; margin-right: 12px; }
+  .tinggi { height: 1500px; }
+  h1 { font-size: 18px; }
+  h2 { font-size: 15px; }
+  h3 { font-size: 13px; margin: 4px 0; }
+</style>
+</head>
+<body>
+<pre id="jejak">jejak:
+pos awal: 1260px,674px | target terdaftar: 19
+viewport awal: 1382x804 | scrollHeight: 2304
+RIGJSON=[{"femur":"M 50 50 L 34.82681551527372 42.33354889192778","tibia":"M 34.82681551527372 42.33354889192778 L 27.432214633346497 59.83554528653948"},{"femur":"M 50 58 L 32.17384855986206 55.50433879838069","tibia":"M 32.17384855986206 55.50433879838069 L 24.259675755633182 73.87186091827492"},{"femur":"M 50 66 L 32.284700168473485 69.18875396967478","tibia":"M 32.284700168473485 69.18875396967478 L 24.923840497087788 87.78492951461325"},{"femur":"M 50 74 L 35.338931675051015 82.6054096689918","tibia":"M 35.338931675051015 82.6054096689918 L 29.52316774162548 100.6934413438498"},{"femur":"M 70 50 L 85.17318448472628 42.33354889192778","tibia":"M 85.17318448472628 42.33354889192778 L 92.56778536665351 59.83554528653948"},{"femur":"M 70 58 L 87.82615144013795 55.50433879838069","tibia":"M 87.82615144013795 55.50433879838069 L 95.74032424436683 73.87186091827492"},{"femur":"M 70 66 L 87.71529983152652 69.18875396967478","tibia":"M 87.71529983152652 69.18875396967478 L 95.07615950291222 87.78492951461325"},{"femur":"M 70 74 L 84.66106832494899 82.6054096689918","tibia":"M 84.66106832494899 82.6054096689918 L 90.47683225837453 100.6934413438498"}]
+rig-1 rig=translate(0 0.03) core=rotate(0.03 60 66) femur[0..2]=rotate(-0.10 50 50)
+rig-2 rig=translate(0 0.03) core=rotate(0.03 60 66) femur[0..2]=rotate(-0.10 50 50)
+femur berubah antar waktu: false
+--- akhir ---
+pos akhir: 1280px,700px
+scrollY akhir: 300 | nilai unik pada cuplikan: 5
+fokus tersisa: 0
+baris catatan: 4
+target bisa diklik terdaftar: 19
+cuplikan: 0@1260px,674px|vp1382x804  0@1260px,674px|vp1382x804  0@1260px,674px|vp1382x804  0@1260px,674px|vp1382x804  0@1260px,674px|vp1382x804  0@1260px,674px|vp1382x804  0@1260px,674px|vp1382x804  0@1260px,674px|vp1382x804  300@1280px,700px|vp1382x804  300@1280px,700px|vp1382x804  300@1280px,700px|vp1382x804  300@1280px,700px|vp1382x804  300@1280px,700px|vp1382x804  318@1280px,700px|vp1382x804  318@1280px,700px|vp1382x804  318@1280px,700px|vp1382x804  318@1280px,700px|vp1382x804  318@1280px,700px|vp1382x804  318@1280px,700px|vp1382x804  336@1280px,700px|vp1382x804  336@1280px,700px|vp1382x804  336@1280px,700px|vp1382x804  336@1280px,700px|vp1382x804  336@1280px,700px|vp1382x804  336@1280px,700px|vp1382x804  354@1280px,700px|vp1382x804  354@1280px,700px|vp1382x804  354@1280px,700px|vp1382x804  354@1280px,700px|vp1382x804  354@1280px,700px|vp1382x804  372@1280px,700px|vp1382x804  480@1280px,700px|vp1382x804  480@1280px,700px|vp1382x804  480@1280px,700px|vp1382x804  480@1280px,700px|vp1382x804</pre>
+<div id="app">
+  <div class="head">
+    <h1>penjualan.csv</h1>
+    <div class="head-actions">
+      <button class="btn" id="btn-export-docx" data-spider-id="tg1">📄 Export to DOCX</button>
+      <button class="btn" id="btn-export-python" data-spider-id="tg2">🐍 Export Python</button>
+      <button class="btn" id="btn-visit-website-online" data-spider-id="tg3">🌐 Online Project</button>
+      <button class="btn" id="btn-export-workflow" data-spider-id="tg4">🧩 Workflow</button>
+    </div>
+  </div>
+  <nav class="nav"><a href="#summary" data-spider-id="tg5">Summary</a><a href="#charts" data-spider-id="tg6">Charts</a><a href="#stock" data-spider-id="tg7">Stok</a></nav>
+  <section class="sec" id="summary" data-spider-id="tg8"><h2>Summary</h2><div class="grid">
+    <div class="card" data-spider-id="tg12"><h3>Column Type Composition</h3></div>
+    <div class="card" data-spider-id="tg13"><h3>Missing Values per Column (%)</h3></div>
+  </div></section>
+  <section class="sec" id="charts" data-spider-id="tg9"><h2>Visualizations</h2><div class="grid">
+    <div class="card" data-spider-id="tg14"><h3>Tren Pendapatan &amp; Laba per Periode</h3></div>
+    <div class="card" data-spider-id="tg15"><h3>Top 10 Barang dengan Stok Tertinggi</h3></div>
+  </div></section>
+  <section class="sec" id="stock" data-spider-id="tg10"><h2>📦 Analisis &amp; Manajemen Stok Barang</h2><div class="grid">
+    <div class="card" data-spider-id="tg16"><h3>Daftar Inventaris Stok Barang</h3></div>
+    <div class="kpis">
+      <div class="kpi" data-spider-id="tg18"><b>3</b><span>🔴 Kritis / Habis</span></div>
+      <div class="kpi" data-spider-id="tg19"><b>52.541.759</b><span>Pendapatan</span></div>
+    </div>
+  </div></section>
+  <div class="tinggi"></div>
+  <section class="sec" id="bawah" data-spider-id="tg11"><h2>Bagian Bawah</h2><div class="grid"><div class="card" data-spider-id="tg17"><h3>Contoh kartu bawah</h3></div></div></section>
+</div>
+
+<script>
+  const state = {};
+  window.__jejak = [];
+  const jejak = (baris) => {
+    window.__jejak.push(baris);
+    document.getElementById('jejak').textContent = 'jejak:\n' + window.__jejak.join('\n');
+  };
+  const vscode = {
+    postMessage: (m) => { jejak('postMessage: ' + m.type + (m.text ? ' | ' + m.text : '') + (m.targets ? ' | ' + m.targets.length + ' target' : '')); },
+    getState: () => state,
+    setState: (s) => { Object.assign(state, s); },
+  };
+  ['btn-export-docx', 'btn-export-python', 'btn-visit-website-online', 'btn-export-workflow'].forEach((id) => {
+    document.getElementById(id).addEventListener('click', () => jejak('KLIK: ' + id));
+  });
+
+  const sampelRig = () => {
+    const femur = [...document.querySelectorAll('#spider-agent .femur')].map((f) => (f.getAttribute('transform') || '-')).join(' ');
+    const tibia = [...document.querySelectorAll('#spider-agent .tibia')].map((f) => (f.getAttribute('transform') || '-')).join(' ');
+    return { femur, tibia, rig: document.querySelector('#spider-agent .sp-rig').getAttribute('transform'), core: document.querySelector('#spider-agent .sp-core').getAttribute('transform') };
+  };
+  const posisi = () => document.getElementById('spider-agent').style.left + ',' + document.getElementById('spider-agent').style.top;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const app = document.getElementById('app');
+    window.SkunderSpider.init({
+      app,
+      sheet: { name: 'Sheet1' },
+      state: { fileName: 'penjualan.csv' },
+      vscode,
+      el: () => document.createElement('div'),
+      esc: (s) => String(s),
+      fmt: (s) => String(s),
+      cut: (s) => String(s),
+      section: null,
+    });
+    window.dispatchEvent(new MessageEvent('message', { data: { type: 'spiderConfig', enabled: true, speak: false, allowActions: true, walkSpeed: 1 } }));
+    jejak('pos awal: ' + posisi() + ' | target terdaftar: ' + document.querySelectorAll('[data-spider-id]').length);
+    jejak('viewport awal: ' + window.innerWidth + 'x' + window.innerHeight + ' | scrollHeight: ' + document.documentElement.scrollHeight);
+
+    // Geometri rangka untuk diperiksa dari luar: 8 kaki, tiap kaki 2 ruas (femur + tibia).
+    const geometri = [...document.querySelectorAll('#spider-agent .leg')].map((g) => ({
+      femur: g.querySelector('.femur > .seg').getAttribute('d'),
+      tibia: g.querySelector('.tibia > .seg').getAttribute('d'),
+    }));
+    jejak('RIGJSON=' + JSON.stringify(geometri));
+
+    window.__rencana = () => ({
+      reply: 'Siap, aku tunjukkan bagiannya satu per satu.',
+      source: 'llm',
+      steps: [
+        { say: 'Pertama, bagian bawah halaman dulu ya.', goto: document.getElementById('bawah').dataset.spiderId, highlight: true, hold: 700 },
+        { say: 'Sekarang aku tekan tombol Export Python.', action: 'click', goto: document.getElementById('btn-export-python').dataset.spiderId, hold: 700 },
+        { say: 'Terakhir kembali ke ringkasan paling atas.', goto: document.getElementById('summary').dataset.spiderId, highlight: true, hold: 700 },
+      ],
+    });
+
+    // Sampel rig saat berjalan (bukti kaki bergerak, bukan hanya mata).
+    setTimeout(() => {
+      const a = sampelRig();
+      setTimeout(() => {
+        const b = sampelRig();
+        jejak('rig-1 rig=' + a.rig + ' core=' + a.core + ' femur[0..2]=' + a.femur.split(' ').slice(0, 3).join(' '));
+        jejak('rig-2 rig=' + b.rig + ' core=' + b.core + ' femur[0..2]=' + b.femur.split(' ').slice(0, 3).join(' '));
+        jejak('femur berubah antar waktu: ' + (a.femur !== b.femur || a.rig !== b.rig));
+      }, 600);
+    }, 900);
+
+    // Catat posisi + scroll tiap 400 ms selama rencana berjalan (membuktikan gerak bertahap).
+    window.__cuplikan = [];
+    const cuplik = setInterval(() => {
+      window.__cuplikan.push(Math.round(window.scrollY) + '@' + posisi() + '|vp' + window.innerWidth + 'x' + window.innerHeight);
+      if (window.__cuplikan.length > 60) { clearInterval(cuplik); }
+      document.getElementById('jejak').textContent = 'jejak:\n' + window.__jejak.join('\n') + '\ncuplikan: ' + window.__cuplikan.join('  ');
+    }, 400);
+
+    setTimeout(() => { window.dispatchEvent(new MessageEvent('message', { data: { type: 'spiderPlan', plan: window.__rencana() } })); }, 1600);
+
+    setTimeout(() => {
+      jejak('--- akhir ---');
+      jejak('pos akhir: ' + posisi());
+      jejak('scrollY akhir: ' + Math.round(window.scrollY) + ' | nilai unik pada cuplikan: ' + new Set(window.__cuplikan.map((c) => c.split('@')[0])).size);
+      jejak('fokus tersisa: ' + document.querySelectorAll('.spider-focus').length);
+      jejak('baris catatan: ' + document.querySelectorAll('#sp-log .sp-row').length);
+      jejak('target bisa diklik terdaftar: ' + document.querySelectorAll('[data-spider-id]').length);
+    }, 12000);
+  });
+</script>
+<script src="../media/spider.js"></script>
+
+
+<div id="spider-agent" title="Tahan &amp; geser untuk memindahkanku · klik untuk panel" class="" style="left: 1280px; top: 700px;"><svg class="sp-svg" viewBox="0 0 120 120" aria-hidden="true">
+            <g class="sp-rig" transform="translate(0 0.25)">
+                <g class="leg" data-i="0">
+                    <g class="femur" transform="rotate(-11.47 50 50)">
+                        <path class="seg" d="M 50 50 L 34.82681551527372 42.33354889192778"></path>
+                        <g class="tibia" transform="rotate(-9.56 34.82681551527372 42.33354889192778)">
+                            <path class="seg" d="M 34.82681551527372 42.33354889192778 L 27.432214633346497 59.83554528653948"></path>
+                        </g>
+                    </g>
+                </g>
+                <g class="leg" data-i="1">
+                    <g class="femur" transform="rotate(11.47 50 58)">
+                        <path class="seg" d="M 50 58 L 32.17384855986206 55.50433879838069"></path>
+                        <g class="tibia" transform="rotate(-3.44 32.17384855986206 55.50433879838069)">
+                            <path class="seg" d="M 32.17384855986206 55.50433879838069 L 24.259675755633182 73.87186091827492"></path>
+                        </g>
+                    </g>
+                </g>
+                <g class="leg" data-i="2">
+                    <g class="femur" transform="rotate(-11.47 50 66)">
+                        <path class="seg" d="M 50 66 L 32.284700168473485 69.18875396967478"></path>
+                        <g class="tibia" transform="rotate(-9.56 32.284700168473485 69.18875396967478)">
+                            <path class="seg" d="M 32.284700168473485 69.18875396967478 L 24.923840497087788 87.78492951461325"></path>
+                        </g>
+                    </g>
+                </g>
+                <g class="leg" data-i="3">
+                    <g class="femur" transform="rotate(11.47 50 74)">
+                        <path class="seg" d="M 50 74 L 35.338931675051015 82.6054096689918"></path>
+                        <g class="tibia" transform="rotate(-3.44 35.338931675051015 82.6054096689918)">
+                            <path class="seg" d="M 35.338931675051015 82.6054096689918 L 29.52316774162548 100.6934413438498"></path>
+                        </g>
+                    </g>
+                </g>
+                <g class="leg" data-i="4">
+                    <g class="femur" transform="rotate(-11.47 70 50)">
+                        <path class="seg" d="M 70 50 L 85.17318448472628 42.33354889192778"></path>
+                        <g class="tibia" transform="rotate(3.44 85.17318448472628 42.33354889192778)">
+                            <path class="seg" d="M 85.17318448472628 42.33354889192778 L 92.56778536665351 59.83554528653948"></path>
+                        </g>
+                    </g>
+                </g>
+                <g class="leg" data-i="5">
+                    <g class="femur" transform="rotate(11.47 70 58)">
+                        <path class="seg" d="M 70 58 L 87.82615144013795 55.50433879838069"></path>
+                        <g class="tibia" transform="rotate(9.56 87.82615144013795 55.50433879838069)">
+                            <path class="seg" d="M 87.82615144013795 55.50433879838069 L 95.74032424436683 73.87186091827492"></path>
+                        </g>
+                    </g>
+                </g>
+                <g class="leg" data-i="6">
+                    <g class="femur" transform="rotate(-11.47 70 66)">
+                        <path class="seg" d="M 70 66 L 87.71529983152652 69.18875396967478"></path>
+                        <g class="tibia" transform="rotate(3.44 87.71529983152652 69.18875396967478)">
+                            <path class="seg" d="M 87.71529983152652 69.18875396967478 L 95.07615950291222 87.78492951461325"></path>
+                        </g>
+                    </g>
+                </g>
+                <g class="leg" data-i="7">
+                    <g class="femur" transform="rotate(11.47 70 74)">
+                        <path class="seg" d="M 70 74 L 84.66106832494899 82.6054096689918"></path>
+                        <g class="tibia" transform="rotate(9.56 84.66106832494899 82.6054096689918)">
+                            <path class="seg" d="M 84.66106832494899 82.6054096689918 L 90.47683225837453 100.6934413438498"></path>
+                        </g>
+                    </g>
+                </g>
+                <g class="sp-core" transform="rotate(2.79 60 66)">
+                    <ellipse class="sp-body" cx="60" cy="64" rx="17" ry="19"></ellipse>
+                    <ellipse class="sp-back" cx="60" cy="67" rx="10" ry="11"></ellipse>
+                    <circle class="sp-head" cx="60" cy="42" r="11.5"></circle>
+                    <g class="sp-eyes">
+                        <circle class="sp-eye" cx="55.4" cy="39" r="3.7"></circle>
+                        <circle class="sp-eye" cx="64.6" cy="39" r="3.7"></circle>
+                        <circle class="sp-pupil" cx="55.4" cy="39.6" r="1.8" transform="translate(1.3 0)"></circle>
+                        <circle class="sp-pupil" cx="64.6" cy="39.6" r="1.8" transform="translate(1.3 0)"></circle>
+                    </g>
+                </g>
+            </g>
+        </svg></div><div id="spider-bubble" style="left: 1038px; top: 602px;" hidden="">Pertama, bagian bawah halaman dulu ya.</div><div id="spider-panel">
+            <div class="sp-head">
+                <strong>🕷️ Spider</strong>
+                <span class="sp-status" id="sp-status">menjalankan langkah…</span>
+                <button class="sp-ib" id="sp-voice" title="Bacakan penjelasan spider dengan suara">🔈</button>
+                <button class="sp-ib" id="sp-clear" title="Bersihkan catatan">🧹</button>
+                <button class="sp-ib" id="sp-close" title="Sembunyikan panel (laba-laba tetap jalan)">✕</button>
+            </div>
+            <div class="sp-chips" id="sp-chips"><button class="sp-chip">Jelaskan KPI utama</button><button class="sp-chip">Tunjukkan grafik tren</button><button class="sp-chip">Rekomendasi dari stok</button><button class="sp-chip">Periksa kualitas data</button><button class="sp-chip">Export Python (tekan tombolnya)</button></div>
+            <div class="sp-log" id="sp-log"><div class="sp-row note">Halaman siap: penjualan.csv · sheet Sheet1 · 19 bagian bisa dituju (7 tombol bisa aku tekan).</div><div class="sp-row spider">Hai, aku Spider! Tahan &amp; geser aku kalau mau dipindah. Beri instruksi lewat kolom di bawah — aku akan berjalan ke bagian yang dimaksud, menyorotnya, dan menjelaskan setiap langkahnya. Aku juga bisa menekan tombol export untukmu.</div><div class="sp-row spider">Siap, aku tunjukkan bagiannya satu per satu.</div><div class="sp-row spider">1. Pertama, bagian bawah halaman dulu ya.</div></div>
+            <div class="sp-input">
+                <input id="sp-text" type="text" placeholder="Instruksi… mis. “jelaskan grafik pendapatan”">
+                <button class="btn primary" id="sp-send">Kirim</button>
+            </div>
+            <div class="sp-note" id="sp-note"></div>
+        </div></body></html>

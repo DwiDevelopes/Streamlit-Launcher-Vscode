@@ -1,0 +1,112 @@
+/* Gaya untuk view "Pet Skin" (ganti kostum pet Spider) — sidebar Date Skunder AI.
+   Warna rangka dan aksesori mengikuti variabel per kartu yang diisi dari media/pet.js. */
+:root {
+    --pet-border: var(--vscode-panel-border, rgba(128, 128, 128, .35));
+}
+
+body.pet-body {
+    margin: 0;
+    padding: 0;
+    color: var(--vscode-foreground);
+    font-family: var(--vscode-font-family, sans-serif);
+    font-size: 12px;
+}
+
+.pet-root {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+}
+
+.pet-head { display: flex; align-items: baseline; gap: 8px; }
+.pet-head strong { font-size: 12.5px; }
+.pet-state { flex: 1 1 auto; text-align: right; font-size: 10.5px; opacity: .7; }
+
+.pet-intro { margin: 0; line-height: 1.5; opacity: .85; }
+
+.pet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+    gap: 8px;
+}
+
+.pet-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid var(--pet-border);
+    background: rgba(128, 128, 128, .08);
+}
+
+.pet-card.active {
+    border-color: var(--vscode-button-background, #0e639c);
+    box-shadow: inset 0 0 0 1px var(--vscode-button-background, #0e639c);
+}
+
+.pet-prev { position: relative; width: 100%; height: 86px; }
+.pet-prev svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+/* Kostum terkunci: pratinjau diredupkan + gembok, tombol Pakai dimatikan sampai misinya selesai. */
+.pet-card.locked { opacity: .85; border-style: dashed; }
+.pet-card.locked .pet-prev { filter: grayscale(.5) brightness(.85); }
+
+.pet-lock {
+    position: absolute;
+    right: 2px;
+    top: 2px;
+    font-size: 15px;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .55));
+}
+
+/* Daftar misi pembuka kostum. */
+.pet-missions { display: flex; flex-direction: column; gap: 5px; }
+.pet-missions-head { margin-top: 4px; font-weight: 700; font-size: 11.5px; }
+.pet-mission { padding: 5px 7px; border-radius: 8px; background: rgba(128, 128, 128, .1); border: 1px solid transparent; }
+.pet-mission.done { background: rgba(89, 161, 79, .16); border-color: rgba(89, 161, 79, .4); }
+.pet-mission-name { font-size: 11px; font-weight: 600; }
+.pet-mission-detail { font-size: 10.5px; line-height: 1.4; opacity: .75; }
+
+.pet-name { font-weight: 700; font-size: 11.5px; }
+.pet-tag { flex: 1 1 auto; font-size: 10.5px; line-height: 1.4; opacity: .75; }
+
+.pet-use {
+    font-family: inherit;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    color: var(--vscode-button-foreground, #fff);
+    background: var(--vscode-button-background, #0e639c);
+}
+
+.pet-use:hover { background: var(--vscode-button-hoverBackground, #1177bb); }
+.pet-use:disabled { cursor: default; opacity: .6; background: transparent; color: inherit; border-color: var(--pet-border); }
+
+.pet-note {
+    font-size: 10.5px;
+    line-height: 1.45;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: rgba(89, 161, 79, .18);
+}
+
+.pet-note.bad { background: rgba(226, 87, 90, .2); }
+
+/* ── rangka laba-laba di pratinjau (bentuk sama dengan spider.js) ─────────── */
+.pet-prev .sp-seg { fill: none; stroke: var(--sp-leg, #22262c); stroke-width: 5; stroke-linecap: round; }
+.pet-prev .sp-tibia .sp-seg { stroke-width: 4.1; }
+.pet-prev .sp-body { fill: var(--sp-body, #2b3038); stroke: var(--sp-outline, #4b5563); stroke-width: 1.4; }
+.pet-prev .sp-back { fill: var(--sp-back, #3a4149); }
+.pet-prev .sp-head { fill: var(--sp-head, #343a42); stroke: var(--sp-outline, #4b5563); stroke-width: 1.2; }
+.pet-prev .sp-eye { fill: var(--sp-eye, #e8f6ff); }
+.pet-prev .sp-pupil { fill: var(--sp-pupil, #17324a); }
+
+/* aksesori kostum: `.sp-acc` = isi warna aksen, `.sp-acc.ring` = garis saja. */
+.pet-prev .sp-acc { fill: var(--sp-acc, #8fa3b8); stroke: rgba(0, 0, 0, .32); stroke-width: .9; stroke-linejoin: round; }
+.pet-prev .sp-acc.ring { fill: none; stroke: var(--sp-acc, #8fa3b8); stroke-width: 2.4; }
+.pet-prev .sp-acc-band { fill: rgba(0, 0, 0, .28); stroke: none; }

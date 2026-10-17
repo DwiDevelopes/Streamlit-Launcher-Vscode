@@ -1,6 +1,21 @@
 :root {
     --gap: 18px;
     --radius: 10px;
+    /* ── Variabel tema halaman analisis ──
+       Bawaan: mengikuti warna VS Code. Panel "🎨 Tema" (media/main.js) menimpa nilai --sk-*
+       di document.documentElement, sehingga seluruh halaman ikut berubah tanpa render ulang. */
+    --sk-bg: var(--vscode-editor-background);
+    --sk-fg: var(--vscode-foreground);
+    --sk-card: var(--vscode-sideBar-background, rgba(128, 128, 128, .08));
+    --sk-border: var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    --sk-btn: var(--vscode-button-background, #2563eb);
+    --sk-btn-fg: var(--vscode-button-foreground, #ffffff);
+    --sk-btn-hover: var(--vscode-button-hoverBackground, var(--sk-btn));
+    --sk-input: var(--vscode-input-background, rgba(128, 128, 128, .12));
+    --sk-input-fg: var(--vscode-input-foreground, var(--sk-fg));
+    --sk-input-border: var(--vscode-input-border, rgba(128, 128, 128, .4));
+    --sk-link: var(--vscode-textLink-foreground, #60a5fa);
+    --sk-accent: var(--vscode-focusBorder, #007fd4);
 }
 
 * {
@@ -14,8 +29,8 @@ html {
 body {
     margin: 0;
     padding: 0 28px 80px;
-    color: var(--vscode-foreground);
-    background: var(--vscode-editor-background);
+    color: var(--sk-fg);
+    background: var(--sk-bg);
     font-family: var(--vscode-font-family);
     font-size: 13px;
     line-height: 1.5;
@@ -31,7 +46,7 @@ h2 {
     font-size: 16px;
     margin: 36px 0 16px;
     padding-bottom: 8px;
-    border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .3));
+    border-bottom: 1px solid var(--sk-border);
     grid-column: 1 / -1;
     letter-spacing: 0.01em;
 }
@@ -78,8 +93,8 @@ h3 {
 }
 
 .btn {
-    background: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
+    background: var(--sk-btn);
+    color: var(--sk-btn-fg);
     border: 0;
     padding: 7px 14px;
     border-radius: 6px;
@@ -94,13 +109,13 @@ h3 {
 }
 
 .btn:hover {
-    background: var(--vscode-button-hoverBackground);
+    background: var(--sk-btn-hover);
     filter: brightness(1.05);
 }
 
 .btn.primary {
-    background: var(--vscode-button-background, #2563eb);
-    color: var(--vscode-button-foreground, #ffffff);
+    background: var(--sk-btn);
+    color: var(--sk-btn-fg);
     font-weight: 600;
     box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
 }
@@ -115,15 +130,15 @@ h3 {
 .tab {
     background: transparent;
     color: inherit;
-    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .4));
+    border: 1px solid var(--sk-border);
     padding: 4px 10px;
     border-radius: 4px;
     cursor: pointer;
 }
 
 .tab.active {
-    background: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
+    background: var(--sk-btn);
+    color: var(--sk-btn-fg);
 }
 
 .nav {
@@ -133,14 +148,14 @@ h3 {
     display: flex;
     gap: 20px;
     padding: 10px 0;
-    background: var(--vscode-editor-background);
-    border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .3));
+    background: var(--sk-bg);
+    border-bottom: 1px solid var(--sk-border);
     overflow-x: auto;
     white-space: nowrap;
 }
 
 .nav a {
-    color: var(--vscode-textLink-foreground);
+    color: var(--sk-link);
     text-decoration: none;
     font-weight: 600;
 }
@@ -155,13 +170,13 @@ h3 {
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr));
     gap: var(--gap);
 }
 
 .card {
-    background: var(--vscode-sideBar-background, rgba(128, 128, 128, .08));
-    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    background: var(--sk-card);
+    border: 1px solid var(--sk-border);
     border-radius: var(--radius);
     padding: 16px;
     min-width: 0;
@@ -185,8 +200,8 @@ h3 {
 }
 
 .kpi {
-    background: var(--vscode-sideBar-background, rgba(128, 128, 128, .1));
-    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    background: var(--sk-card);
+    border: 1px solid var(--sk-border);
     border-radius: var(--radius);
     padding: 14px 16px;
 }
@@ -300,9 +315,9 @@ h3 {
     width: 100%;
     max-width: 360px;
     padding: 5px 8px;
-    background: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    border: 1px solid var(--vscode-input-border, rgba(128, 128, 128, .4));
+    background: var(--sk-input);
+    color: var(--sk-input-fg);
+    border: 1px solid var(--sk-input-border);
     border-radius: 4px;
 }
 
@@ -326,12 +341,12 @@ table.data {
 table.data th {
     position: sticky;
     top: 0;
-    background: var(--vscode-editorGroupHeader-tabsBackground, #333);
+    background: var(--sk-card);
     cursor: pointer;
     text-align: left;
     white-space: nowrap;
     padding: 6px 10px;
-    border-bottom: 2px solid var(--vscode-panel-border, #555);
+    border-bottom: 2px solid var(--sk-border);
 }
 
 table.data td {
@@ -464,10 +479,13 @@ table.heat td {
     font-size: 11px;
     margin-left: 6px;
     text-decoration: none;
-    color: var(--vscode-textLink-foreground, #818cf8);
+    color: var(--sk-link, #818cf8);
     transition: background .15s;
     white-space: nowrap;
     cursor: pointer;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .link-bar:hover {
@@ -486,7 +504,16 @@ table.heat td {
 
     .head {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
+    }
+
+    .head-actions {
+        gap: 8px;
+    }
+
+    .head-actions .btn {
+        flex: 1 1 auto;
+        justify-content: center;
     }
 
     .nav {
@@ -502,6 +529,172 @@ table.heat td {
     .bcard.s-l,
     .bcard.s-xl {
         grid-column: auto;
+    }
+
+    .link-bar {
+        margin-left: 0;
+    }
+
+    .toolbar input,
+    .stock-search {
+        max-width: 100%;
+    }
+
+    .tablewrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* ===== Panel tema (🎨 Tema di header) ===== */
+.theme-panel {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 890;
+    width: 292px;
+    max-width: calc(100vw - 24px);
+    max-height: min(82vh, 620px);
+    overflow-y: auto;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--sk-card, var(--vscode-editorWidget-background, #21262d));
+    border: 1px solid var(--sk-border, rgba(128, 128, 128, .4));
+    box-shadow: 0 16px 38px rgba(0, 0, 0, .42);
+    color: var(--sk-fg, var(--vscode-foreground));
+    font-size: 12px;
+}
+
+.theme-panel.hidden {
+    display: none;
+}
+
+.theme-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.theme-head strong {
+    font-size: 12.5px;
+}
+
+.theme-ib {
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 6px;
+    border-radius: 5px;
+    opacity: .75;
+}
+
+.theme-ib:hover {
+    opacity: 1;
+    background: rgba(128, 128, 128, .22);
+}
+
+.theme-sec {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    opacity: .65;
+    margin: 10px 0 6px;
+}
+
+.theme-presets {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+}
+
+.theme-preset {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--sk-border, rgba(128, 128, 128, .35));
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+    font-size: 11px;
+    font-family: inherit;
+    transition: border-color .15s, background .15s;
+}
+
+.theme-preset:hover {
+    background: rgba(128, 128, 128, .14);
+}
+
+.theme-preset.active {
+    border-color: var(--sk-accent, #007fd4);
+    background: rgba(128, 128, 128, .18);
+    font-weight: 600;
+}
+
+.theme-preset .sw {
+    display: flex;
+    flex-shrink: 0;
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid rgba(128, 128, 128, .35);
+}
+
+.theme-preset .sw i {
+    width: 9px;
+    height: 16px;
+    display: block;
+}
+
+.theme-colors {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 10px;
+}
+
+.theme-color label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    font-size: 11px;
+    opacity: .9;
+}
+
+.theme-color input[type="color"] {
+    width: 34px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid var(--sk-border, rgba(128, 128, 128, .4));
+    border-radius: 5px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.theme-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.theme-actions .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+    font-size: 11px;
+    padding: 6px 8px;
+}
+
+@media (max-width: 480px) {
+    .theme-panel {
+        left: 12px;
+        right: 12px;
+        width: auto;
     }
 }
 
@@ -531,12 +724,12 @@ table.heat td {
 
 .card:hover {
     box-shadow: 0 4px 16px rgba(0, 0, 0, .25);
-    border-color: var(--vscode-focusBorder, #007fd4);
+    border-color: var(--sk-accent);
 }
 
 .card.dragging {
     opacity: .4;
-    outline: 2px dashed var(--vscode-focusBorder, #007fd4);
+    outline: 2px dashed var(--sk-accent);
 }
 
 .btn {
@@ -786,6 +979,173 @@ select {
     border-radius: 4px;
 }
 
+/* ===== Stock / Inventory Feature Styles ===== */
+.stock-kpis .kpi.kpi-crit {
+    border-color: rgba(239, 68, 68, .5);
+    background: rgba(239, 68, 68, .12);
+}
+.stock-kpis .kpi.kpi-crit b {
+    color: #ef4444;
+}
+
+.stock-kpis .kpi.kpi-warn {
+    border-color: rgba(245, 158, 11, .5);
+    background: rgba(245, 158, 11, .12);
+}
+.stock-kpis .kpi.kpi-warn b {
+    color: #f59e0b;
+}
+
+.stock-kpis .kpi.kpi-ok {
+    border-color: rgba(16, 185, 129, .5);
+    background: rgba(16, 185, 129, .12);
+}
+.stock-kpis .kpi.kpi-ok b {
+    color: #10b981;
+}
+
+.stock-kpis .kpi.kpi-info {
+    border-color: rgba(59, 130, 246, .5);
+    background: rgba(59, 130, 246, .12);
+}
+.stock-kpis .kpi.kpi-info b {
+    color: #3b82f6;
+}
+
+.stock-tbl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.stock-filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.s-tab {
+    background: transparent;
+    color: inherit;
+    border: 1px solid var(--sk-border);
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all .15s ease;
+}
+
+.s-tab:hover {
+    background: var(--sk-btn-hover, rgba(128, 128, 128, .15));
+}
+
+.s-tab.active {
+    background: var(--sk-btn, #2563eb);
+    color: var(--sk-btn-fg, #ffffff);
+    border-color: transparent;
+}
+
+.stock-search {
+    background: var(--sk-input, transparent);
+    color: var(--sk-input-fg, inherit);
+    border: 1px solid var(--sk-input-border, rgba(128, 128, 128, .3));
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    width: 100%;
+}
+
+/* ===== Needs Analysis Styles ===== */
+.needs-hero-banner {
+    background: linear-gradient(135deg, rgba(37, 99, 235, .15), rgba(59, 130, 246, .05));
+    border: 1px solid rgba(59, 130, 246, .35);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+}
+
+.needs-hero-tag {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--vscode-textLink-foreground, #3b82f6);
+    font-weight: 700;
+}
+
+.needs-hero-banner h2 {
+    border-bottom: none;
+    margin: 8px 0 6px;
+    font-size: 20px;
+}
+
+.needs-budget-highlight {
+    color: #10b981;
+    font-weight: 800;
+}
+
+.needs-action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.needs-action-item {
+    background: var(--vscode-sideBar-background, rgba(128, 128, 128, .08));
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .2));
+    border-radius: 6px;
+    padding: 12px 14px;
+}
+
+.needs-action-title {
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.needs-action-desc {
+    font-size: 11.5px;
+    line-height: 1.45;
+}
+
+/* ===== CSV Health Styles ===== */
+.csv-meter-card {
+    background: var(--vscode-sideBar-background, rgba(128, 128, 128, .08));
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    padding: 20px 24px;
+}
+
+.csv-score-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.csv-score-pills {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.csv-pill {
+    background: var(--vscode-editor-background, rgba(0, 0, 0, .15));
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .2));
+    padding: 8px 14px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 90px;
+}
+
+.csv-pill strong {
+    font-size: 16px;
+    margin-top: 2px;
+}
+
 /* ===== Print / PDF Export Styles ===== */
 .print-only {
     display: none !important;
@@ -972,4 +1332,200 @@ select {
     table.heat td {
         color: #111827 !important;
     }
+}
+
+/* ── Diagram pohon keputusan C4.5 (SVG di dalam kartu) ───────────────────── */
+.treewrap { overflow-x: auto; padding-bottom: 6px; }
+.tree { max-width: none; display: block; }
+.tree .te { fill: none; stroke: rgba(128, 128, 128, .5); stroke-width: 1.4; }
+.tree .tl { font: 600 10.5px var(--vscode-font-family, sans-serif); fill: rgba(150, 150, 150, .95); text-anchor: middle; }
+.tree .tn rect { fill: var(--vscode-editorWidget-background, #21262d); stroke: rgba(128, 128, 128, .5); stroke-width: 1.2; }
+.tree .tn.split rect { stroke: #4e79a7; }
+.tree .tn.leaf rect { stroke: #59a14f; fill: rgba(89, 161, 79, .12); }
+.tree .tt { font: 700 11.5px var(--vscode-font-family, sans-serif); fill: var(--vscode-foreground, #e5e7eb); text-anchor: middle; }
+.tree .ts { font: 500 10px var(--vscode-font-family, sans-serif); fill: rgba(150, 150, 150, .95); text-anchor: middle; }
+
+/* ── Bilah kontrol & kanvas diagram pohon C4.5 ───────────────────────────── */
+.treehost {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    border-radius: 8px;
+    background: var(--vscode-editor-background, rgba(0, 0, 0, .12));
+    max-height: 660px;
+    overflow: auto;
+}
+
+.treehost .treewrap {
+    overflow: visible;
+}
+
+.treebar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 9px 18px;
+    padding: 10px 12px;
+    margin-top: 10px;
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    border-radius: 8px;
+    background: var(--vscode-editorWidget-background, rgba(128, 128, 128, .07));
+}
+
+.tctl {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: .95;
+}
+
+.tctl select,
+.tctl input[type="search"] {
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 3px 6px;
+    max-width: 170px;
+    border-radius: 5px;
+    border: 1px solid var(--vscode-input-border, var(--vscode-panel-border, rgba(128, 128, 128, .4)));
+    background: var(--vscode-input-background, rgba(0, 0, 0, .2));
+    color: var(--vscode-input-foreground, inherit);
+}
+
+.tctl input[type="search"] {
+    min-width: 190px;
+    max-width: 260px;
+}
+
+.tctl input[type="range"] {
+    width: 112px;
+    accent-color: var(--vscode-button-background, #2563eb);
+    cursor: pointer;
+}
+
+.tctl b {
+    min-width: 34px;
+    text-align: right;
+    font-size: 11.5px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.tctl.chk {
+    font-weight: 500;
+}
+
+.tctl.chk input[type="checkbox"] {
+    accent-color: var(--vscode-button-background, #2563eb);
+}
+
+.tbtns {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.tbtns button {
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid var(--vscode-button-border, var(--vscode-panel-border, rgba(128, 128, 128, .4)));
+    background: var(--vscode-button-secondaryBackground, rgba(128, 128, 128, .16));
+    color: var(--vscode-button-secondaryForeground, var(--vscode-foreground, inherit));
+}
+
+.tbtns button:hover {
+    background: var(--vscode-button-secondaryHoverBackground, rgba(128, 128, 128, .3));
+}
+
+/* ── Kepala kartu: judul + tombol aksi sebaris ──────────────────────────── */
+.card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.card-head h3 {
+    margin: 0;
+}
+
+/* ── Baris KPI rapat untuk seksi Decision Tree (12 kartu) ───────────────── */
+.kpis.kpis-6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+    .kpis.kpis-6 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .kpis.kpis-6 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ── Diagnostik & rekomendasi optimasi model ────────────────────────────── */
+.dt-advisor-card {
+    background: var(--vscode-sideBar-background, rgba(128, 128, 128, .08));
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .28));
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 14px;
+}
+
+/* ── Advisor & Recommendations ── */
+.dt-advisor-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-top: 8px;
+    background: var(--vscode-editor-background, rgba(0, 0, 0, .1));
+    border-left: 4px solid #4e79a7;
+    font-size: 12px;
+}
+
+.dt-advisor-item.warn { border-left-color: #f28e2b; }
+.dt-advisor-item.ok { border-left-color: #59a14f; }
+.dt-advisor-item.err { border-left-color: #e15759; }
+
+/* ── Code Generator Exporter ── */
+.dt-code-box {
+    position: relative;
+    background: var(--vscode-textCodeBlock-background, rgba(0, 0, 0, .3));
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-top: 8px;
+}
+
+.dt-code-box pre {
+    margin: 0;
+    font-family: var(--vscode-editor-font-family, monospace);
+    font-size: 11px;
+    line-height: 1.45;
+    overflow-x: auto;
+    max-height: 320px;
+}
+
+.dt-code-copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 3px 8px;
+    font-size: 10.5px;
+    cursor: pointer;
 }

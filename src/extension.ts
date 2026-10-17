@@ -1,8 +1,21 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as XLSX from 'xlsx';
 import { analyzeWorkbook } from './analysis';
+import { treeOptionsFromSettings } from './treeConfig';
+import { exportReport } from './exporter';
+import { exportPython } from './pythonExport';
+import { registerAiViews, AiHub } from './aiViews';
+import { registerPetView } from './petView';
+import { registerCommunityView } from './community';
+import { activePetSkin, buildSpiderWebConfig, petSkinSharePayload } from './petSkins';
+import { addMissionProgress, missionById, MissionId } from './petMissions';
+import { buildStatsContext } from './analysisStore';
+import { buildSpiderPlan, SpiderTarget, SpiderRunStep, explainSpiderRun } from './spider';
 
 const VIEW_TYPE = 'dateSkunder.viewer';
+/** Tema tampilan halaman analisis (pilihan preset + warna kustom) — diingat antar-sesi. */
+const THEME_KEY = 'dateSkunder.theme';
 
 class SkunderDocument implements vscode.CustomDocument {
 	constructor(public readonly uri: vscode.Uri) { }
@@ -10,7 +23,13 @@ class SkunderDocument implements vscode.CustomDocument {
 }
 
 class SkunderProvider implements vscode.CustomReadonlyEditorProvider<SkunderDocument> {
-	constructor(private readonly ctx: vscode.ExtensionContext) { }
+	constructor(
+		private readonly ctx: vscode.ExtensionContext,
+		private readonly hub?: AiHub,
+		private communityProvider?: import('./community').CommunityViewProvider,
+		/** Menyegarkan data skin aktif di view Community Chat (dipakai tombol bagikan). */
+		private readonly refreshCommunitySkin?: () => void,
+	) { }
 
 	openCustomDocument(uri: vscode.Uri): SkunderDocument {
 		return new SkunderDocument(uri);
@@ -18,14 +37,25 @@ class SkunderProvider implements vscode.CustomReadonlyEditorProvider<SkunderDocu
 
 	async resolveCustomEditor(doc: SkunderDocument, panel: vscode.WebviewPanel): Promise<void> {
 		const media = vscode.Uri.joinPath(this.ctx.extensionUri, 'media');
-		panel.webview.options = { enableScripts: true, localResourceRoots: [media] };
-		panel.webview.html = this.getHtml(panel.webview, media);
+		const icon = vscode.Uri.joinPath(this.ctx.extensionUri, 'icon');
+		const video = vscode.Uri.joinPath(this.ctx.extensionUri, 'video');
+		panel.webview.options = { enableScripts: true, localResourceRoots: [media, icon, video] };
+		panel.webview.html = this.getHtml(panel.webview, media, icon, video);
 
 		const fileName = path.basename(doc.uri.fsPath);
+		// Daftarkan panel ke hub supaya perubahan konfigurasi (mis. kostum pet) bisa disiarkan ke halaman ini.
+		this.hub?.attachPanel(panel);
+		panel.onDidDispose(() => this.hub?.detachPanel(panel));
 		const load = async () => {
 			try {
 				const bytes = await vscode.workspace.fs.readFile(doc.uri);
-				const payload = analyzeWorkbook(bytes, fileName);
+				const payload = analyzeWorkbook(bytes, fileName, treeOptionsFromSettings());
+				this.hub?.recordAnalysis(doc.uri, fileName, payload);
+				// Konfigurasi laba-laba (termasuk kostum yang dipakai) dibangun di satu tempat: src/petSkins.ts.
+				// Konteks dikirim supaya kostum yang masih terkunci otomatis kembali ke bawaan.
+				panel.webview.postMessage(buildSpiderWebConfig(this.ctx));
+				// Tema dikirim sebelum data supaya render pertama langsung memakai warna yang tersimpan.
+				panel.webview.postMessage({ type: 'theme', theme: this.ctx.workspaceState.get<unknown>(THEME_KEY) ?? null });
 				panel.webview.postMessage({ type: 'data', payload });
 			} catch (e) {
 				panel.webview.postMessage({ type: 'error', message: `Failed to read file: ${String(e)}` });
@@ -33,22 +63,64 @@ class SkunderProvider implements vscode.CustomReadonlyEditorProvider<SkunderDocu
 		};
 
 		panel.webview.onDidReceiveMessage(async (m) => {
-			if (m.type === 'ready' || m.type === 'reload') {
-				load();
-			} else if (m.type === 'openExternalOnlineProject' || m.type === 'openExternalOfflineProject') {
-				const uri = vscode.Uri.parse(m.url);
-				await vscode.env.openExternal(uri);
-			} else if (m.type === 'exportPdfDone') {
-				const action = await vscode.window.showInformationMessage(
-					`📄 PDF exported: ${m.fileName}`,
-					'Open Folder'
-				);
-				if (action === 'Open Folder') {
-					const folderUri = vscode.Uri.file(m.folder);
-					await vscode.commands.executeCommand('revealFileInOS', folderUri);
+			try {
+				if (m.type === 'ready' || m.type === 'reload') {
+					await load();
+				} else if (m.type === 'openExternalOnlineProject' || m.type === 'openExternalOfflineProject') {
+					await vscode.env.openExternal(vscode.Uri.parse(m.url));
+				} else if (m.type === 'saveDocx') {
+					await exportReport('docx', doc.uri, m.sheetName);
+				} else if (m.type === 'savePdf') {
+					await exportReport('pdf', doc.uri, m.sheetName);
+				} else if (m.type === 'saveXlsx') {
+					await exportReport('xlsx', doc.uri, m.sheetName);
+				} else if (m.type === 'saveWorkflow') {
+					await exportReport('workflow', doc.uri, m.sheetName);
+				} else if (m.type === 'savePptx') {
+					await exportReport('pptx', doc.uri, m.sheetName);
+				} else if (m.type === 'savePython') {
+					await exportPython(doc.uri, m.sheetName);
+				} else if (m.type === 'saveJson') {
+					// Seluruh hasil analisis berkas ini sebagai .json (dibaca mesin).
+					await exportReport('json', doc.uri, m.sheetName);
+				} else if (m.type === 'saveTheme') {
+					// Tema halaman analisis (preset + warna kustom) dipilih pengguna → diingat untuk sesi berikutnya.
+					await this.ctx.workspaceState.update(THEME_KEY, m.theme ?? null);
+				} else if (m.type === 'spiderAsk') {
+					await this.planSpider(panel, doc, m);
+				} else if (m.type === 'spiderResult') {
+					// Pet selesai menjalankan rencananya → otak model menulis penjelasan hasilnya.
+					await this.explainSpiderResult(panel, doc, m);
+				} else if (m.type === 'spiderEvent') {
+					// Peristiwa pekerjaan pet (export/cek/tur/nonstop) → progres misi & view Pet Skin.
+					await this.recordSpiderEvent(panel, m);
+				} else if (m.type === 'openPetSkin') {
+					// Tombol “Ganti kostum” di panel pet membuka view Pet Skin.
+					await vscode.commands.executeCommand('dateSkunder.petView.focus');
+				} else if (m.type === 'openCommunity') {
+					// Tombol Community Chat di panel pet membuka view Community Chat + menyiapkan data skin.
+					await vscode.commands.executeCommand('dateSkunder.communityView.focus');
+					this.refreshCommunitySkin?.();
+				} else if (m.type === 'shareAiToCommunity') {
+					// Kirim hasil analisis AI/C4.5 dari panel analisis ke Community Chat.
+					const text = String(m.text || '').trim();
+					if (text && this.communityProvider) {
+						// Fokus ke Community Chat dulu agar pengguna melihatnya.
+						await vscode.commands.executeCommand('dateSkunder.communityView.focus');
+						this.communityProvider.sendAiResult(text);
+						this.refreshCommunitySkin?.();
+					}
+				} else if (m.type === 'shareSkinToCommunity') {
+					// Data skin dari webview; bila tidak dikirim, ambil skin aktif langsung dari pengaturan.
+					await vscode.commands.executeCommand('dateSkunder.communityView.focus');
+					if (m.payload && this.communityProvider) {
+						this.communityProvider.sendSkinData(m.payload);
+					} else {
+						this.refreshCommunitySkin?.();
+					}
 				}
-			} else if (m.type === 'savePdf') {
-				await handleSavePdf(m, doc.uri);
+			} catch (e) {
+				vscode.window.showErrorMessage(`Date Skunder: ${e instanceof Error ? e.message : String(e)}`);
 			}
 		});
 
@@ -60,255 +132,275 @@ class SkunderProvider implements vscode.CustomReadonlyEditorProvider<SkunderDocu
 		panel.onDidDispose(() => watcher.dispose());
 	}
 
-	private getHtml(webview: vscode.Webview, media: vscode.Uri): string {
+	/**
+	 * Spider: susun rencana langkah (gerak + sorot + penjelasan) dari instruksi pengguna.
+	 * LLM lokal dipakai bila llama-server aktif; bila tidak, perencana lokal dari angka analisis.
+	 */
+	private async planSpider(panel: vscode.WebviewPanel, doc: SkunderDocument, msg: any): Promise<void> {
+		const request = String(msg?.text ?? '').trim();
+		if (!request) { return; }
+		const fileName = path.basename(doc.uri.fsPath);
+		const sheetName = String(msg?.sheetName ?? '');
+		const targets: SpiderTarget[] = Array.isArray(msg?.targets)
+			? msg.targets
+				.filter((t: any) => t && typeof t.id === 'string' && t.label)
+				.slice(0, 60)
+				.map((t: any) => ({
+					id: String(t.id),
+					label: String(t.label),
+					kind: t.kind ? String(t.kind) : undefined,
+					click: !!t.click,
+					group: t.group ? String(t.group) : undefined,
+					danger: !!t.danger,
+				}))
+			: [];
+
+		const hub = this.hub;
+		const cfg = hub?.config();
+		const entry = this.findStoredAnalysis(fileName);
+		// Ringkasan dijaga pendek: prompt + daftar target + keluaran harus tetap muat di jendela model.
+		// Otak penuh: pet menyusun rencana + penjelasan langkah dengan konteks statistik seluas mungkin.
+		const summary = entry ? buildStatsContext(entry, sheetName || undefined, 7000) : 'Belum ada analisis tersimpan untuk berkas ini.';
+		const maxSteps = Math.min(12, Math.max(3, Math.round(vscode.workspace.getConfiguration('dateSkunder').get<number>('spider.maxSteps') ?? 8)));
+
+		panel.webview.postMessage({ type: 'spiderStatus', state: 'thinking' });
+		try {
+			const plan = await buildSpiderPlan({
+				request,
+				fileName,
+				sheetName: sheetName || entry?.sheetNames?.[0] || '',
+				targets,
+				summary,
+				facts: summary.split('\n'),
+				running: !!hub?.server.running,
+				port: cfg?.port ?? 8081,
+				temperature: Math.max(0.2, cfg?.temperature ?? 0.2),
+				maxTokens: cfg?.maxTokens ?? 0,
+				maxSteps,
+				contextSize: cfg?.contextSize ?? 4096,
+			});
+			if (!(cfg?.spiderAllowActions ?? true)) {
+				plan.note = [plan.note, 'Aksi klik sedang dimatikan lewat pengaturan dateSkunder.spider.allowActions.'].filter(Boolean).join(' ');
+			}
+			// Permintaan eksplisit dari panel (mis. tombol “Jalankan semua fitur”) tetap dieksekusi walau ⚡ Auto mati.
+			if (msg?.force) { plan.force = true; }
+			panel.webview.postMessage({ type: 'spiderPlan', request, plan });
+		} catch (e) {
+			panel.webview.postMessage({
+				type: 'spiderPlan',
+				request,
+				plan: { reply: `Maaf, rencana gagal disusun: ${e instanceof Error ? e.message : String(e)}`, steps: [], source: 'local' },
+			});
+		}
+	}
+
+	/**
+	 * Penjelasan hasil eksekusi oleh otak model penuh: setelah pet selesai menjalankan langkahnya,
+	 * llama-server menulis apa yang dikerjakan, hasil mana yang berhasil/gagal, dan maknanya bagi data.
+	 * Bila server belum berjalan, pet diberi tahu apa adanya (tidak ada penjelasan template).
+	 */
+	private async explainSpiderResult(panel: vscode.WebviewPanel, doc: SkunderDocument, msg: any): Promise<void> {
+		const steps: SpiderRunStep[] = Array.isArray(msg?.steps)
+			? msg.steps
+				.filter((s: any) => s && typeof s === 'object')
+				.slice(0, 24)
+				.map((s: any) => ({
+					say: s.say ? String(s.say) : undefined,
+					target: s.target ? String(s.target) : undefined,
+					action: s.action ? String(s.action) : null,
+					ok: s.ok !== false,
+					detail: s.detail ? String(s.detail) : undefined,
+				}))
+			: [];
+		if (!steps.length) { return; }
+		const hub = this.hub;
+		if (!hub?.server.running) {
+			panel.webview.postMessage({
+				type: 'spiderExplain',
+				ok: false,
+				note: 'Penjelasan otak model belum bisa ditulis: llama-server belum berjalan. Tekan ▶ di sidebar Chat AI (atau view LLAMA Server) supaya pet bisa menjelaskan hasil kerjanya.',
+			});
+			return;
+		}
+		const cfg = hub.config();
+		const fileName = path.basename(doc.uri.fsPath);
+		const sheetName = String(msg?.sheetName ?? '');
+		const entry = this.findStoredAnalysis(fileName);
+		const summary = entry ? buildStatsContext(entry, sheetName || undefined, 7000) : '';
+		panel.webview.postMessage({ type: 'spiderExplain', ok: true, pending: true });
+		try {
+			const text = await explainSpiderRun({
+				request: String(msg?.request ?? ''),
+				fileName,
+				sheetName: sheetName || (entry?.sheetNames?.[0] ?? ''),
+				summary,
+				steps,
+				port: cfg.port,
+				temperature: Math.max(0.2, cfg.temperature),
+				maxTokens: cfg.maxTokens,
+				contextSize: cfg.contextSize,
+			});
+			panel.webview.postMessage(text
+				? { type: 'spiderExplain', ok: true, text }
+				: { type: 'spiderExplain', ok: false, note: 'Otak model tidak membalas, jadi penjelasan hasil belum bisa ditulis. Coba lagi sebentar lagi.' });
+		} catch (e) {
+			panel.webview.postMessage({ type: 'spiderExplain', ok: false, note: `Penjelasan gagal disusun: ${e instanceof Error ? e.message : String(e)}` });
+		}
+	}
+
+	/**
+	 * Peristiwa dari pet (export/cek/tur/nonstop) → progres misi tersimpan + view Pet Skin ikut diperbarui.
+	 * Misi yang baru selesai memberi tahu panel supaya pemakainya tahu kostum baru sudah terbuka.
+	 */
+	private async recordSpiderEvent(panel: vscode.WebviewPanel, msg: any): Promise<void> {
+		const deltas: Partial<Record<MissionId, number>> = {};
+		const kind = String(msg?.kind ?? '');
+		if (kind === 'run') {
+			const angka = (v: unknown, maks: number) => Math.max(0, Math.min(maks, Math.round(Number(v) || 0)));
+			const exports = angka(msg?.exports, 24);
+			if (exports > 0) { deltas['first-export'] = exports; }
+			if (exports >= 3) { deltas['export-all'] = exports; }
+			if (exports > 0) { deltas['export-marathon'] = exports; }
+			if (angka(msg?.jurnal, 12) > 0) { deltas['first-jurnal'] = angka(msg?.jurnal, 12); }
+			if (angka(msg?.flow, 12) > 0) { deltas['first-workflow'] = angka(msg?.flow, 12); }
+			if (angka(msg?.json, 12) > 0) { deltas['first-json'] = angka(msg?.json, 12); }
+			if (angka(msg?.pptx, 12) > 0) { deltas['first-pptx'] = angka(msg?.pptx, 12); }
+			if (angka(msg?.typed, 24) > 0) {
+				deltas['typist'] = angka(msg?.typed, 24);
+				deltas['typist-master'] = angka(msg?.typed, 40);
+			}
+			if (angka(msg?.tabs, 24) > 0) { deltas['navigator'] = angka(msg?.tabs, 24); }
+			const dieksekusi = angka(msg?.executed, 120);
+			deltas['marathon'] = dieksekusi;
+			deltas['centurion'] = dieksekusi;
+			if (msg?.tour) { deltas['tour-master'] = 1; deltas['tour-veteran'] = 1; }
+			if (msg?.check) { deltas['checker'] = 1; deltas['check-master'] = 1; }
+		} else if (kind === 'nonstop') {
+			deltas['nonstop-runner'] = 1;
+			deltas['nonstop-master'] = 1;
+		}
+		const selesai = await addMissionProgress(this.ctx, deltas);
+		this.hub?.refreshPetView();
+		if (!selesai.length) { return; }
+		const bagian: string[] = [];
+		for (const id of selesai) {
+			const misi = missionById(id);
+			if (misi) { bagian.push(`“${misi.name}” → kostum ${misi.rewardSkin} terbuka`); }
+		}
+		panel.webview.postMessage({ type: 'spiderMission', ids: selesai, text: `🎉 Misi selesai: ${bagian.join('; ')}. Buka view Pet Skin untuk memakainya.` });
+	}
+
+	/** Cari hasil analisis berkas ini di penyimpanan bersama (dipakai spider sebagai konteks). */
+	private findStoredAnalysis(fileName: string) {
+		const store = this.hub?.store;
+		if (!store) { return undefined; }
+		for (const item of store.list()) {
+			const entry = store.get(item.id);
+			if (entry && entry.fileName === fileName) { return entry; }
+		}
+		return store.last();
+	}
+
+	private getHtml(webview: vscode.Webview, media: vscode.Uri, icon: vscode.Uri, video: vscode.Uri): string {
 		const nonce = Array.from({ length: 32 }, () => Math.random().toString(36)[2]).join('');
 		const css = webview.asWebviewUri(vscode.Uri.joinPath(media, 'main.css'));
 		const js = webview.asWebviewUri(vscode.Uri.joinPath(media, 'main.js'));
 		const builder = webview.asWebviewUri(vscode.Uri.joinPath(media, 'builder.js'));
+		const spider = webview.asWebviewUri(vscode.Uri.joinPath(media, 'spider.js'));
+		const spiderCss = webview.asWebviewUri(vscode.Uri.joinPath(media, 'spider.css'));
 		const chart = webview.asWebviewUri(vscode.Uri.joinPath(media, 'chart.umd.js'));
+		const intro = webview.asWebviewUri(vscode.Uri.joinPath(media, 'intro.js'));
+		const logo = webview.asWebviewUri(vscode.Uri.joinPath(icon, 'logo.png'));
+		const mp4 = webview.asWebviewUri(vscode.Uri.joinPath(video, 'streamlit.mp4'));
 		return /* html */ `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' ${webview.cspSource}; img-src ${webview.cspSource} data:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' ${webview.cspSource}; img-src ${webview.cspSource} data:; media-src ${webview.cspSource};">
 <link href="${css}" rel="stylesheet">
+<link href="${spiderCss}" rel="stylesheet">
 <title>Date Skunder</title>
 </head>
-<body>
-<div id="app"><div class="loading">⏳ Reading &amp; analyzing data…</div></div>
+<body data-video="${mp4}">
+<div id="app">
+	<center><img src="${logo}" width="120" height="120" style="border-radius:20px" /></center>
+	<div class="loading">Reading analyzing data…</div>
+	<center><p>This Extension Analys Api Management Streamlit Launcher</p></center>
+</div>
 <script nonce="${nonce}" src="${chart}"></script>
 <script nonce="${nonce}" src="${builder}"></script>
+<script nonce="${nonce}" src="${spider}"></script>
 <script nonce="${nonce}" src="${js}"></script>
+<script nonce="${nonce}" src="${intro}"></script>
 </body>
 </html>`;
 	}
 }
 
-// ── PDF generation helper ────────────────────────────────────────────────────
+export const workbookTypes = ['.xlsx', '.xls', '.csv', '.tsv', '.xlsm'];
 
-async function handleSavePdf(m: any, sourceUri: vscode.Uri): Promise<void> {
-	const defaultPath = path.join(path.dirname(sourceUri.fsPath), m.suggestedName || 'report.pdf');
-	const saveUri = await vscode.window.showSaveDialog({
-		defaultUri: vscode.Uri.file(defaultPath),
-		filters: { 'PDF Files': ['pdf'] },
-		saveLabel: 'Save PDF'
-	});
-	if (!saveUri) { return; }
-
-	try {
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		const PDFDocument: any = require('pdfkit');
-		const chunks: Buffer[] = [];
-
-		await new Promise<void>((resolve, reject) => {
-			const doc = new PDFDocument({
-				margin: 50,
-				size: 'A4',
-				bufferPages: true,
-				info: {
-					Title: `Date Skunder – ${m.stats?.fileName || 'Report'}`,
-					Author: 'Date Skunder Extension'
-				}
-			});
-			doc.on('data', (chunk: Buffer) => chunks.push(chunk));
-			doc.on('end', resolve);
-			doc.on('error', reject);
-
-			const PAGE_W = doc.page.width;
-			const MARGIN = 50;
-			const CONTENT_W = PAGE_W - MARGIN * 2;
-			const stats = m.stats || {};
-
-			// ── Cover ───────────────────────────────────────────────────────
-			doc.rect(0, 0, PAGE_W, 160).fill('#1e2a3b');
-			doc.fillColor('#ffffff')
-				.fontSize(24).font('Helvetica-Bold')
-				.text('Date Skunder', MARGIN, 40, { width: CONTENT_W })
-				.fontSize(13).font('Helvetica')
-				.text('Data Analysis Report', MARGIN, 72, { width: CONTENT_W })
-				.fontSize(10)
-				.text(`Generated: ${m.generatedAt || new Date().toLocaleString()}`, MARGIN, 110, { width: CONTENT_W });
-
-			doc.rect(0, 160, PAGE_W, 36).fill('#2d3f58');
-			doc.fillColor('#a8c4e0').fontSize(10).font('Helvetica')
-				.text(`File: ${stats.fileName || '—'}   ·   Sheet: ${stats.sheetName || '—'}`, MARGIN, 170, { width: CONTENT_W });
-
-			doc.fillColor('#222222');
-			let y = 220;
-
-			// ── KPI grid ────────────────────────────────────────────────────
-			doc.fontSize(14).font('Helvetica-Bold').fillColor('#1e2a3b').text('Summary', MARGIN, y);
-			y += 24;
-
-			const kpis: [string, string][] = [
-				['Total Rows', Number(stats.totalRows || 0).toLocaleString('en-US')],
-				['Columns', String(stats.columns || 0)],
-				['Numeric Cols', String(stats.numericCols || 0)],
-				['Category Cols', String(stats.categoryCols || 0)],
-				['Date Cols', String(stats.dateCols || 0)],
-				['Missing Cells', (stats.missingPct || '0') + '%'],
-				['Duplicate Rows', Number(stats.duplicates || 0).toLocaleString('en-US')],
-			];
-			const kpiCols = 4;
-			const kpiW = CONTENT_W / kpiCols;
-			kpis.forEach(([label, value], i) => {
-				const c = i % kpiCols;
-				const r = Math.floor(i / kpiCols);
-				const kx = MARGIN + c * kpiW;
-				const ky = y + r * 56;
-				doc.rect(kx + 2, ky, kpiW - 8, 48).fill('#f0f4f9').stroke('#d0daea');
-				doc.fillColor('#1e2a3b').fontSize(16).font('Helvetica-Bold')
-					.text(value, kx + 6, ky + 6, { width: kpiW - 16, align: 'center' });
-				doc.fillColor('#5a6a80').fontSize(8).font('Helvetica')
-					.text(label, kx + 6, ky + 30, { width: kpiW - 16, align: 'center' });
-			});
-			y += Math.ceil(kpis.length / kpiCols) * 56 + 24;
-
-			// ── Insights ────────────────────────────────────────────────────
-			const insights: string[] = m.insights || [];
-			if (insights.length) {
-				if (y > doc.page.height - 140) { doc.addPage(); y = MARGIN; }
-				doc.fontSize(14).font('Helvetica-Bold').fillColor('#1e2a3b').text('Automated Insights', MARGIN, y);
-				y += 20;
-				doc.rect(MARGIN, y, CONTENT_W, Math.min(insights.length, 20) * 16 + 16).fill('#f8fafb');
-				y += 8;
-				insights.slice(0, 20).forEach((ins) => {
-					if (y > doc.page.height - 60) { doc.addPage(); y = MARGIN; }
-					doc.fontSize(9).font('Helvetica').fillColor('#333333')
-						.text('• ' + ins, MARGIN + 8, y, { width: CONTENT_W - 16 });
-					y += 16;
-				});
-				y += 16;
-			}
-
-			// ── Notes ───────────────────────────────────────────────────────
-			const notes: any[] = m.notes || [];
-			if (notes.length) {
-				if (y > doc.page.height - 120) { doc.addPage(); y = MARGIN; }
-				doc.fontSize(14).font('Helvetica-Bold').fillColor('#1e2a3b').text('Notes & Observations', MARGIN, y);
-				y += 20;
-				notes.forEach((note: any) => {
-					if (y > doc.page.height - 100) { doc.addPage(); y = MARGIN; }
-					doc.rect(MARGIN, y, CONTENT_W, 20).fill('#e8f0fe');
-					doc.fillColor('#1a56db').fontSize(10).font('Helvetica-Bold')
-						.text(String(note.title || 'Note'), MARGIN + 6, y + 5, { width: CONTENT_W - 130 });
-					doc.fillColor('#5a6a80').fontSize(8).font('Helvetica')
-						.text(`[${note.category || ''}]  ${note.date || ''}`, MARGIN + CONTENT_W - 124, y + 7, { width: 116, align: 'right' });
-					y += 22;
-					if (note.text) {
-						String(note.text).split('\n').forEach((line: string) => {
-							if (y > doc.page.height - 60) { doc.addPage(); y = MARGIN; }
-							doc.fillColor('#333333').fontSize(9).font('Helvetica')
-								.text(line || ' ', MARGIN + 6, y, { width: CONTENT_W - 12 });
-							y += 13;
-						});
-					}
-					y += 10;
-				});
-				y += 8;
-			}
-
-			// ── Column Summary ──────────────────────────────────────────────
-			const colSummary: any[] = m.colSummary || [];
-			if (colSummary.length) {
-				doc.addPage();
-				y = MARGIN;
-				doc.fontSize(14).font('Helvetica-Bold').fillColor('#1e2a3b').text('Column Summary', MARGIN, y);
-				y += 20;
-				const colHeaders = ['Column Name', 'Type', 'Missing %', 'Unique'];
-				const colWidths = [CONTENT_W * 0.45, CONTENT_W * 0.2, CONTENT_W * 0.17, CONTENT_W * 0.18];
-				doc.rect(MARGIN, y, CONTENT_W, 18).fill('#1e2a3b');
-				let cx = MARGIN;
-				colHeaders.forEach((h, i) => {
-					doc.fillColor('#ffffff').fontSize(9).font('Helvetica-Bold')
-						.text(h, cx + 4, y + 5, { width: colWidths[i] - 4 });
-					cx += colWidths[i];
-				});
-				y += 18;
-				colSummary.forEach((col: any, idx: number) => {
-					if (y > doc.page.height - 60) { doc.addPage(); y = MARGIN; }
-					doc.rect(MARGIN, y, CONTENT_W, 16).fill(idx % 2 === 0 ? '#f7f9fc' : '#ffffff');
-					cx = MARGIN;
-					[col.name, col.type, col.missing, String(col.unique)].forEach((val: string, i: number) => {
-						doc.fillColor('#333333').fontSize(8).font('Helvetica')
-							.text(String(val || ''), cx + 4, y + 4, { width: colWidths[i] - 8 });
-						cx += colWidths[i];
-					});
-					y += 16;
-				});
-			}
-
-			// ── Charts 2-per-row ────────────────────────────────────────────
-			const chartImages: any[] = m.chartImages || [];
-			if (chartImages.length) {
-				doc.addPage();
-				y = MARGIN;
-				doc.fontSize(14).font('Helvetica-Bold').fillColor('#1e2a3b').text('Charts & Visualizations', MARGIN, y);
-				y += 24;
-				const imgW = (CONTENT_W - 16) / 2;
-				const imgH = Math.round(imgW * 0.62);
-				let col = 0;
-				chartImages.forEach((ch: any) => {
-					if (!ch || !ch.dataUrl) { return; }
-					try {
-						if (y + imgH + 28 > doc.page.height - MARGIN) {
-							doc.addPage(); y = MARGIN; col = 0;
-						}
-						const imgX = MARGIN + col * (imgW + 16);
-						const b64 = ch.dataUrl.replace(/^data:image\/\w+;base64,/, '');
-						const imgBuf = Buffer.from(b64, 'base64');
-						doc.image(imgBuf, imgX, y, { width: imgW, height: imgH });
-						if (ch.title) {
-							doc.fillColor('#555555').fontSize(8).font('Helvetica')
-								.text(String(ch.title).slice(0, 56), imgX, y + imgH + 2, { width: imgW, align: 'center' });
-						}
-						col++;
-						if (col >= 2) { col = 0; y += imgH + 28; }
-					} catch (_) { /* skip */ }
-				});
-			}
-
-			// ── Footer on every page ────────────────────────────────────────
-			const range = doc.bufferedPageRange();
-			for (let i = 0; i < range.count; i++) {
-				doc.switchToPage(range.start + i);
-				doc.rect(0, doc.page.height - 28, PAGE_W, 28).fill('#f0f4f9');
-				doc.fillColor('#888888').fontSize(8).font('Helvetica')
-					.text(
-						`Date Skunder  ·  ${stats.fileName || ''}  ·  Page ${i + 1} of ${range.count}`,
-						MARGIN, doc.page.height - 18,
-						{ width: CONTENT_W, align: 'center' }
-					);
-			}
-
-			doc.end();
-		});
-
-		const pdfBuf = Buffer.concat(chunks);
-		await vscode.workspace.fs.writeFile(saveUri, pdfBuf);
-
-		const action = await vscode.window.showInformationMessage(
-			`✅ PDF tersimpan: ${path.basename(saveUri.fsPath)}`,
-			'Buka Folder',
-			'Buka File'
-		);
-		if (action === 'Buka Folder') {
-			await vscode.commands.executeCommand('revealFileInOS', saveUri);
-		} else if (action === 'Buka File') {
-			await vscode.env.openExternal(saveUri);
-		}
-
-	} catch (err) {
-		vscode.window.showErrorMessage(`❌ Gagal menyimpan PDF: ${String(err)}`);
-	}
+/** Ambil URI dari argumen command, tab custom editor yang aktif, atau editor teks aktif. */
+function resolveUri(uri?: vscode.Uri): vscode.Uri | undefined {
+	if (uri) { return uri; }
+	const input = vscode.window.tabGroups.activeTabGroup.activeTab?.input;
+	if (input instanceof vscode.TabInputCustom || input instanceof vscode.TabInputText) { return input.uri; }
+	return vscode.window.activeTextEditor?.document.uri;
 }
 
 // ── Extension lifecycle ──────────────────────────────────────────────────────
 
 export function activate(context: vscode.ExtensionContext) {
+	const hub = registerAiViews(context);
+	// View “Pet Skin”: tempat ganti kostum pet Spider (menggantikan view Flowchart Canvas yang dihapus).
+	registerPetView(context, hub);
+	// View “Community Chat”: ruang chat komunitas (profil nama + deskripsi, avatar bawaan) di bawah Pet Skin;
+	// pesan tersimpan di Firebase Firestore — hanya username, deskripsi profil, isi pesan, dan waktu (tanpa gambar).
+	const communityProvider = registerCommunityView(context);
+
+	/**
+	 * Kirim data skin pet aktif ke view Community Chat supaya tombol “🎨 Bagikan Skin” selalu punya data.
+	 * View komunitas baru dibuat saat pertama dibuka, jadi pesan diulang dengan jeda singkat (webview yang
+	 * belum siap melewatkannya) dan disegarkan berkala selama VS Code aktif.
+	 */
+	const pushCommunitySkin = () => {
+		communityProvider.sendSkinData(petSkinSharePayload(activePetSkin(context)));
+	};
+	const pushCommunitySkinSoon = () => {
+		pushCommunitySkin();
+		setTimeout(pushCommunitySkin, 800);
+		setTimeout(pushCommunitySkin, 2200);
+	};
+	const communitySkinTimer = setInterval(pushCommunitySkin, 10000);
 	context.subscriptions.push(
-		vscode.window.registerCustomEditorProvider(VIEW_TYPE, new SkunderProvider(context), {
+		{ dispose: () => clearInterval(communitySkinTimer) },
+		// Kostum diganti (dari view Pet Skin maupun Settings) → data skin di chat ikut diperbarui.
+		vscode.workspace.onDidChangeConfiguration((e) => {
+			if (e.affectsConfiguration('dateSkunder.spider.skin')) { pushCommunitySkinSoon(); }
+		}),
+	);
+
+	const skunderProvider = new SkunderProvider(context, hub, communityProvider, pushCommunitySkinSoon);
+
+
+	/** Kirim perintah ke pet di halaman analisis; beri tahu bila belum ada halaman terbuka. */
+	const spiderCmd = (cmd: 'tour' | 'check' | 'nonstop' | 'stop') => {
+		if (!hub.spiderCommand(cmd)) {
+			vscode.window.showInformationMessage('Buka berkas CSV/Excel lewat Date Skunder dulu — perintah pet dijalankan di halaman analisis yang terbuka.');
+		}
+	};
+
+	const exportCmd = (format: 'docx' | 'pdf' | 'xlsx' | 'workflow' | 'pptx' | 'json') => async (uri?: vscode.Uri) => {
+		const target = resolveUri(uri);
+		if (!target) {
+			vscode.window.showWarningMessage('Buka file CSV atau Excel terlebih dahulu.');
+			return;
+		}
+		await exportReport(format, target);
+	};
+
+	context.subscriptions.push(
+		vscode.window.registerCustomEditorProvider(VIEW_TYPE, skunderProvider, {
 			webviewOptions: { retainContextWhenHidden: true },
 			supportsMultipleEditorsPerDocument: false,
 		}),
@@ -319,6 +411,26 @@ export function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 			await vscode.commands.executeCommand('vscode.openWith', uri, VIEW_TYPE);
+		}),
+		vscode.commands.registerCommand('date-skunder.exportDocx', exportCmd('docx')),
+		vscode.commands.registerCommand('date-skunder.exportPdf', exportCmd('pdf')),
+		vscode.commands.registerCommand('date-skunder.exportXlsx', exportCmd('xlsx')),
+		vscode.commands.registerCommand('date-skunder.exportPptx', exportCmd('pptx')),
+		vscode.commands.registerCommand('date-skunder.exportWorkflow', exportCmd('workflow')),
+		vscode.commands.registerCommand('date-skunder.exportJson', exportCmd('json')),
+		// Shortcut pet Spider: perintah dikirim ke halaman analisis yang terbuka (pet merespons
+		// hanya bila halamannya terlihat, jadi shortcut tidak “menekan” halaman lain).
+		vscode.commands.registerCommand('date-skunder.spider.tour', () => spiderCmd('tour')),
+		vscode.commands.registerCommand('date-skunder.spider.check', () => spiderCmd('check')),
+		vscode.commands.registerCommand('date-skunder.spider.nonstop', () => spiderCmd('nonstop')),
+		vscode.commands.registerCommand('date-skunder.spider.stop', () => spiderCmd('stop')),
+		vscode.commands.registerCommand('date-skunder.exportPython', async (uri?: vscode.Uri) => {
+			const target = resolveUri(uri);
+			if (!target) {
+				vscode.window.showWarningMessage('Buka file CSV atau Excel terlebih dahulu.');
+				return;
+			}
+			await exportPython(target);
 		})
 	);
 }

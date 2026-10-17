@@ -1,0 +1,129 @@
+========================================================================
+LAPORAN ANALISIS DATA — multi.xlsx
+Dibuat oleh Date Skunder · 14/10/2026, 21.24.05
+Jumlah sheet: 2
+========================================================================
+
+------------------------------------------------------------------------
+SHEET: Penjualan  (40 baris x 4 kolom)
+------------------------------------------------------------------------
+  Sel kosong 0 dari 160 (0,0%) · baris duplikat 0
+  Kolom: 2 numerik, 2 lain-lain
+
+  [1] Tanggal (unik 9, kosong 0)
+      teratas: 2025-01-10 5 | 2025-02-11 5 | 2025-03-12 5 | 2025-04-13 5 | 2025-05-14 4
+  [2] Produk (unik 5, kosong 0)
+      teratas: Produk 0 8 | Produk 1 8 | Produk 2 8 | Produk 3 8 | Produk 4 8
+  [3] Qty (numerik)
+      min 1,00 · mean 3,88 · median 4,00 · max 7,00 · std 1,96 · jumlah 155,00
+  [4] Harga (numerik)
+      min 1.000,00 · mean 2.500,00 · median 2.500,00 · max 4.000,00 · std 1.118,03 · jumlah 100.000,00
+
+[KUALITAS & PROFIL CSV]
+  Skor 100/100 (🟢 Sangat Sehat (Excellent Quality)) · kelengkapan 100,00% · integritas 100,00% · konsistensi 100,00%
+   [pass] Missing / Null Values: Lengkap 100% tanpa sel kosong
+   [pass] Duplikasi Baris (Duplicates): Tidak ada baris duplikat
+   [pass] Struktur Kolom & Tipe Data: 4 kolom bertipe terstruktur (numerik/tanggal/kategori)
+   [pass] Nilai Ekstrem (Numeric Outliers): Tidak ada anomali ekstrem signifikan
+   [pass] Kerapatan & Densitas Data: 4 kolom × 40 baris (160 nilai terisi)
+   * Kualitas file CSV sangat bersih dan konsisten.
+
+[KPI BISNIS]
+  Pendapatan 392.000,00 dari 40 order (AOV 9.800,00)
+  Biaya - · laba kotor - · margin -
+  Unit terjual 155,00 · item/order 3,88 · diskon - (- dari nilai kotor)
+  Pelanggan - · pendapatan/pelanggan - · pelanggan berulang - · retensi - · kontribusi 10% pelanggan teratas -
+  Pertumbuhan: periode terakhir -15,79% · rata-rata -4,05% · terbaik 2025-04 · terlemah 2025-09
+  Konsentrasi: 4 produk (80,00%) menghasilkan 80% pendapatan · HHI 2.029
+  Produk teratas: Produk 4 87.000,00; Produk 1 86.000,00; Produk 3 84.000,00; Produk 2 72.000,00; Produk 0 63.000,00
+  Tren per periode: 2025-01 52.000,00 | 2025-02 47.000,00 | 2025-03 52.000,00 | 2025-04 53.000,00 | 2025-05 41.000,00 | 2025-06 32.000,00 | 2025-07 45.000,00 | 2025-08 38.000,00 | 2025-09 32.000,00
+
+[STOK / INVENTARIS]
+  5 SKU · volume 155,00 · valuasi 392.000,04 · 0 kritis, 0 menipis, 5 aman, 0 overstock
+  Kelas ABC: A 3 SKU (65,6% nilai), B 1 (18,4%), C 1 (16,1%)
+  Stok terbanyak: Produk 4 33,00; Produk 3 32,00; Produk 2 31,00; Produk 1 30,00; Produk 0 29,00
+  Stok paling sedikit: Produk 0 29,00; Produk 1 30,00; Produk 2 31,00; Produk 3 32,00; Produk 4 33,00
+
+[KEBUTUHAN PENGADAAN]
+  Anggaran 0,00 · 0 item mendesak, 0 prioritas tinggi
+   ! Ketergantungan Kategori Tinggi: Kategori "Umum" mendominasi lebih dari 40% perputaran. Diversifikasi lini produk dianjurkan.
+
+[DECISION TREE C4.5]
+  Target "Tanggal" · akurasi 0,0% · precision 0,0% · recall 0,0% · F1 0,0%
+  Atribut terpenting: Qty 50,8%; Produk 25,7%; Harga 23,5%
+  Aturan (maks. 8):
+   - IF Qty = 5 AND Produk = Produk 0 THEN Class = 2025-08-16 (1 samples)
+   - IF Qty = 5 AND Produk = Produk 1 THEN Class = 2025-03-11 (1 samples)
+   - IF Qty = 5 AND Produk = Produk 4 AND Harga = 4000 THEN Class = 2025-04-12 (1 samples)
+   - IF Qty = 5 AND Produk = Produk 4 AND Harga = 1000 THEN Class = 2025-05-13 (1 samples)
+   - IF Qty = 7 AND Produk = Produk 3 THEN Class = 2025-05-13 (1 samples)
+   - IF Qty = 7 AND Produk = Produk 2 THEN Class = 2025-01-09 (1 samples)
+   - IF Qty = 7 AND Produk = Produk 1 THEN Class = 2025-07-15 (1 samples)
+   - IF Qty = 7 AND Produk = Produk 4 THEN Class = 2025-08-16 (1 samples)
+
+[TEMUAN OTOMATIS]
+  - Dataset contains 40 rows and 4 columns (2 numeric, 1 categorical, 1 date).
+  - 🩺 Skor Kualitas File CSV: 100% (🟢 Sangat Sehat (Excellent Quality)).
+  - ✅ No missing values — dataset is complete.
+  - Date range for "Tanggal": 2025-01-10 → 2025-09-18.
+  - Most frequent value in "Produk": Produk 0 (20%).
+  - Analisis Stok Barang: Terdeteksi 5 produk unik dengan total kuantitas 155 unit (Valuasi Aset: 392,000).
+  - 📈 Pendapatan total 392.000 dari 40 order (AOV 9.800).
+  - 📈 Pendapatan periode terakhir turun 15.79% dibanding periode sebelumnya.
+  - 📈 Periode terbaik 2025-04, terlemah 2025-09.
+  - 📈 Produk teratas "Produk 4" menyumbang 22.19% pendapatan.
+  - 📈 Pareto: 80% produk (4 item) menghasilkan 80% pendapatan; HHI 2029.
+  - 🌳 Decision Tree C4.5: Model klasifikasi dibangun untuk prediksi "Tanggal" dengan akurasi 0.0% (30 aturan keputusan).
+  - 📊 Feature Importance: "Qty" adalah atribut paling penting (50.8% kontribusi).
+
+------------------------------------------------------------------------
+SHEET: Stok Gudang  (40 baris x 2 kolom)
+------------------------------------------------------------------------
+  Sel kosong 0 dari 80 (0,0%) · baris duplikat 0
+  Kolom: 1 numerik, 1 lain-lain
+
+  [1] Item (unik 6, kosong 0)
+      teratas: Barang 0 7 | Barang 1 7 | Barang 2 7 | Barang 3 7 | Barang 4 6
+  [2] Stok (numerik)
+      min 0,00 · mean 4,65 · median 4,50 · max 10,00 · std 3,09 · jumlah 186,00
+
+[KUALITAS & PROFIL CSV]
+  Skor 100/100 (🟢 Sangat Sehat (Excellent Quality)) · kelengkapan 100,00% · integritas 100,00% · konsistensi 100,00%
+   [pass] Missing / Null Values: Lengkap 100% tanpa sel kosong
+   [pass] Duplikasi Baris (Duplicates): Tidak ada baris duplikat
+   [pass] Struktur Kolom & Tipe Data: 2 kolom bertipe terstruktur (numerik/tanggal/kategori)
+   [pass] Nilai Ekstrem (Numeric Outliers): Tidak ada anomali ekstrem signifikan
+   [pass] Kerapatan & Densitas Data: 2 kolom × 40 baris (80 nilai terisi)
+   * Kualitas file CSV sangat bersih dan konsisten.
+
+[STOK / INVENTARIS]
+  6 SKU · volume 186,00 · valuasi 186,00 · 0 kritis, 0 menipis, 6 aman, 0 overstock
+  Kelas ABC: A 3 SKU (60,2% nilai), B 2 (28,5%), C 1 (11,3%)
+  Stok terbanyak: Barang 2 41,00; Barang 3 37,00; Barang 1 34,00; Barang 0 27,00; Barang 4 26,00
+  Stok paling sedikit: Barang 5 21,00; Barang 4 26,00; Barang 0 27,00; Barang 1 34,00; Barang 3 37,00
+
+[KEBUTUHAN PENGADAAN]
+  Anggaran 0,00 · 0 item mendesak, 0 prioritas tinggi
+   ! Ketergantungan Kategori Tinggi: Kategori "Umum" mendominasi lebih dari 40% perputaran. Diversifikasi lini produk dianjurkan.
+
+[DECISION TREE C4.5]
+  Target "Item" · akurasi 0,0% · precision 0,0% · recall 0,0% · F1 0,0%
+  Atribut terpenting: Stok 100,0%
+  Aturan (maks. 8):
+   - IF Stok = 9 THEN Class = Barang 2 (2 samples)
+   - IF Stok = 6 THEN Class = Barang 5 (4 samples)
+   - IF Stok = 1 THEN Class = Barang 5 (3 samples)
+   - IF Stok = 3 THEN Class = Barang 0 (3 samples)
+   - IF Stok = 2 THEN Class = Barang 0 (4 samples)
+   - IF Stok = 7 THEN Class = Barang 1 (2 samples)
+   - IF Stok = 5 THEN Class = Barang 3 (1 samples)
+   - IF Stok = 8 THEN Class = Barang 1 (2 samples)
+
+[TEMUAN OTOMATIS]
+  - Dataset contains 40 rows and 2 columns (1 numeric, 1 categorical, 0 date).
+  - 🩺 Skor Kualitas File CSV: 100% (🟢 Sangat Sehat (Excellent Quality)).
+  - ✅ No missing values — dataset is complete.
+  - Most frequent value in "Item": Barang 0 (18%).
+  - Analisis Stok Barang: Terdeteksi 6 produk unik dengan total kuantitas 186 unit (Valuasi Aset: 186).
+  - 🌳 Decision Tree C4.5: Model klasifikasi dibangun untuk prediksi "Item" dengan akurasi 0.0% (11 aturan keputusan).
+  - 📊 Feature Importance: "Stok" adalah atribut paling penting (100.0% kontribusi).

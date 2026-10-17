@@ -1,0 +1,112 @@
+const fs = require('fs');
+const path = require('path');
+
+// Harness view "LLAMA Server": meniru aliran status & log dari ekstensi, lalu mengukur DOM-nya.
+const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store">
+<title>Harness LLAMA</title>
+<link rel="stylesheet" href="../media/ai.css">
+</head>
+<body class="ai-body">
+<div class="ai-root">
+    <div class="ai-head">
+        <div class="ai-head-row"><strong>🦙 LLAMA Server</strong><span id="dot" class="ai-dot off"></span></div>
+        <div id="status" class="ai-status">memeriksa…</div>
+    </div>
+    <div class="ai-plain">
+        <div class="ai-mini">
+            <button id="start" class="ai-btn ghost">▶ Start</button>
+            <button id="stop" class="ai-btn ghost">⏹ Stop</button>
+            <button id="settings" class="ai-btn ghost">⚙</button>
+            <button id="clear" class="ai-btn ghost">🧹</button>
+        </div>
+    </div>
+    <div id="meta" class="ai-meta"></div>
+    <label class="ai-chk wide"><input type="checkbox" id="follow" checked> ikuti log terbaru</label>
+    <pre id="log" class="ai-log"></pre>
+</div>
+
+<script>
+    window.__sent = [];
+    window.__queue = [];
+    window.__handler = null;
+    window.acquireVsCodeApi = function () {
+        return {
+            postMessage: function (m) {
+                window.__sent.push(m);
+                if (window.__handler) { window.__handler(m); } else { window.__queue.push(m); }
+            },
+            getState: function () { return {}; }, setState: function () { }
+        };
+    };
+</script>
+<script src="../media/llama.js"></script>
+<script>
+    const STATUS = {
+        type: 'status',
+        status: { state: 'starting', port: 8081, pid: 9137, modelPath: 'D:/models/llama-3.2-3b-q4_k_m.gguf', binaryPath: 'C:/ext/win/llama-server.exe', message: 'Memuat model…' },
+        os: { platform: 'win32', folder: 'win', label: 'win32 → folder "win/"', binary: 'C:/ext/win/llama-server.exe', candidates: ['C:/ext/win/llama-server.exe'] },
+        port: 8081, contextSize: 4096, gpuLayers: 0,
+        model: 'D:/models/llama-3.2-3b-q4_k_m.gguf', modelLabel: 'llama-3.2-3b-q4_k_m.gguf', modelExists: true,
+        logs: ['llama_model_loader: loaded meta data', 'main: server is listening on http://127.0.0.1:8081']
+    };
+    const RUNNING = JSON.parse(JSON.stringify(STATUS));
+    RUNNING.status = { state: 'running', port: 8081, pid: 9137, modelPath: STATUS.model, startedAt: Date.now() };
+
+    let stops = 0;
+    function onFromWebview(m) {
+        if (m.type === 'ready') {
+            window.dispatchEvent(new MessageEvent('message', { data: STATUS }));
+            // log mengalir bertahap (streaming), bukan menunggu proses selesai
+            const lines = [
+                'build: 9271 (windows vulkan)',
+                'system_info: n_threads = 8 | AVX2 = 1',
+                'llama_model_loader: loaded meta data with 25 key-value pairs (D:/models/llama-3.2-3b-q4_k_m.gguf)',
+                'llama_context: n_ctx = 4096',
+                'main: server is listening on http://127.0.0.1:8081',
+                'warn: kv cache reuse disabled',
+                'error: contoh baris galat untuk uji pewarnaan'
+            ];
+            let i = 0;
+            const t = setInterval(function () {
+                if (i >= lines.length) { clearInterval(t); window.dispatchEvent(new MessageEvent('message', { data: RUNNING })); return; }
+                window.dispatchEvent(new MessageEvent('message', { data: { type: 'log', line: lines[i++] } }));
+            }, 120);
+        } else if (m.type === 'stop') {
+            stops++;
+            window.dispatchEvent(new MessageEvent('message', { data: { type: 'status', status: { state: 'stopped', port: 8081 }, os: STATUS.os, port: 8081, contextSize: 4096, model: STATUS.model, modelLabel: 'llama-3.2-3b-q4_k_m.gguf', modelExists: true, logs: [] } }));
+        }
+    }
+    window.__handler = onFromWebview;
+    window.__queue.splice(0).forEach(onFromWebview);
+
+    // uji interaksi tombol setelah aliran log selesai
+    setTimeout(function () { document.getElementById('clear').click(); }, 1800);
+    setTimeout(function () { document.getElementById('stop').click(); }, 2400);
+
+    setTimeout(function () {
+        const log = document.getElementById('log');
+        const pills = Array.from(document.querySelectorAll('#meta .ai-pill')).map(function (p) { return p.textContent + (p.classList.contains('ok') ? '[ok]' : p.classList.contains('bad') ? '[bad]' : ''); });
+        const styles = Array.from(log.children).map(function (s) { return getComputedStyle(s).color; });
+        document.title = 'LLAMA logLines=' + log.children.length
+            + ' logText=' + JSON.stringify(log.textContent.slice(0, 60))
+            + ' styled=' + new Set(styles).size
+            + ' pills=' + pills.join('|')
+            + ' statusNow="' + document.getElementById('status').textContent + '"'
+            + ' dot=' + document.getElementById('dot').className
+            + ' startDisabled=' + document.getElementById('start').disabled
+            + ' sent=' + window.__sent.map(function (m2) { return m2.type; }).join(',');
+    }, 3200);
+
+    window.addEventListener('error', function (e) {
+        document.title = 'PAGE_ERROR ' + (e.error && e.error.stack ? e.error.stack : e.message);
+    });
+</script>
+</body>
+</html>`;
+
+fs.writeFileSync(path.join(__dirname, 'llama-harness.html'), html);
+console.log('llama-harness.html written, bytes:', html.length);

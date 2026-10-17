@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Uji Spider</title>
+<link rel="stylesheet" href="../media/spider.css">
+<style>
+  body { font-family: "Segoe UI", sans-serif; margin: 0; padding: 0 28px 80px; background: #1e1e1e; color: #ddd; }
+  #jejak { background: #111; color: #9ae6b4; font: 12px/1.5 monospace; padding: 8px; white-space: pre-wrap; margin: 10px 0; }
+  section.sec { margin: 18px 0; border: 1px solid #333; border-radius: 8px; padding: 10px; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .card { border: 1px solid #333; border-radius: 8px; padding: 10px; background: #262626; }
+  .kpis { display: flex; gap: 8px; }
+  .kpi { border: 1px solid #333; border-radius: 8px; padding: 8px; }
+  .btn { padding: 5px 10px; border-radius: 6px; border: 1px solid #444; background: #333; color: #eee; cursor: pointer; }
+  nav a { color: #7cb7ff; margin-right: 12px; }
+  .tinggi { height: 1500px; }
+  h1 { font-size: 18px; }
+  h2 { font-size: 15px; }
+  h3 { font-size: 13px; margin: 4px 0; }
+</style>
+</head>
+<body>
+<pre id="jejak">jejak:</pre>
+<div id="app">
+  <div class="head">
+    <h1>penjualan.csv</h1>
+    <div class="head-actions">
+      <button class="btn" id="btn-export-docx">📄 Export to DOCX</button>
+      <button class="btn" id="btn-export-python">🐍 Export Python</button>
+      <button class="btn" id="btn-visit-website-online">🌐 Online Project</button>
+      <button class="btn" id="btn-export-workflow">🧩 Workflow</button>
+    </div>
+  </div>
+  <nav class="nav"><a href="#summary">Summary</a><a href="#charts">Charts</a><a href="#stock">Stok</a></nav>
+  <section class="sec" id="summary"><h2>Summary</h2><div class="grid">
+    <div class="card"><h3>Column Type Composition</h3></div>
+    <div class="card"><h3>Missing Values per Column (%)</h3></div>
+  </div></section>
+  <section class="sec" id="charts"><h2>Visualizations</h2><div class="grid">
+    <div class="card"><h3>Tren Pendapatan &amp; Laba per Periode</h3></div>
+    <div class="card"><h3>Top 10 Barang dengan Stok Tertinggi</h3></div>
+  </div></section>
+  <section class="sec" id="stock"><h2>📦 Analisis &amp; Manajemen Stok Barang</h2><div class="grid">
+    <div class="card"><h3>Daftar Inventaris Stok Barang</h3></div>
+    <div class="kpis">
+      <div class="kpi"><b>3</b><span>🔴 Kritis / Habis</span></div>
+      <div class="kpi"><b>52.541.759</b><span>Pendapatan</span></div>
+    </div>
+  </div></section>
+  <div class="tinggi"></div>
+  <section class="sec" id="bawah"><h2>Bagian Bawah</h2><div class="grid"><div class="card"><h3>Contoh kartu bawah</h3></div></div></section>
+</div>
+
+<script>
+  const state = {};
+  window.__jejak = [];
+  const jejak = (baris) => {
+    window.__jejak.push(baris);
+    document.getElementById('jejak').textContent = 'jejak:\n' + window.__jejak.join('\n');
+  };
+  const vscode = {
+    postMessage: (m) => { jejak('postMessage: ' + m.type + (m.text ? ' | ' + m.text : '') + (m.targets ? ' | ' + m.targets.length + ' target' : '')); },
+    getState: () => state,
+    setState: (s) => { Object.assign(state, s); },
+  };
+  ['btn-export-docx', 'btn-export-python', 'btn-visit-website-online', 'btn-export-workflow'].forEach((id) => {
+    document.getElementById(id).addEventListener('click', () => jejak('KLIK: ' + id));
+  });
+
+  const sampelRig = () => {
+    const femur = [...document.querySelectorAll('#spider-agent .femur')].map((f) => (f.getAttribute('transform') || '-')).join(' ');
+    const tibia = [...document.querySelectorAll('#spider-agent .tibia')].map((f) => (f.getAttribute('transform') || '-')).join(' ');
+    return { femur, tibia, rig: document.querySelector('#spider-agent .sp-rig').getAttribute('transform'), core: document.querySelector('#spider-agent .sp-core').getAttribute('transform') };
+  };
+  const posisi = () => document.getElementById('spider-agent').style.left + ',' + document.getElementById('spider-agent').style.top;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const app = document.getElementById('app');
+    window.SkunderSpider.init({
+      app,
+      sheet: { name: 'Sheet1' },
+      state: { fileName: 'penjualan.csv' },
+      vscode,
+      el: () => document.createElement('div'),
+      esc: (s) => String(s),
+      fmt: (s) => String(s),
+      cut: (s) => String(s),
+      section: null,
+    });
+    window.dispatchEvent(new MessageEvent('message', { data: { type: 'spiderConfig', enabled: true, speak: false, allowActions: true, walkSpeed: 1 } }));
+    jejak('pos awal: ' + posisi() + ' | target terdaftar: ' + document.querySelectorAll('[data-spider-id]').length);
+    jejak('viewport awal: ' + window.innerWidth + 'x' + window.innerHeight + ' | scrollHeight: ' + document.documentElement.scrollHeight);
+
+    // Geometri rangka untuk diperiksa dari luar: 8 kaki, tiap kaki 2 ruas (femur + tibia).
+    const geometri = [...document.querySelectorAll('#spider-agent .leg')].map((g) => ({
+      femur: g.querySelector('.femur > .seg').getAttribute('d'),
+      tibia: g.querySelector('.tibia > .seg').getAttribute('d'),
+    }));
+    jejak('RIGJSON=' + JSON.stringify(geometri));
+
+    window.__rencana = () => ({
+      reply: 'Siap, aku tunjukkan bagiannya satu per satu.',
+      source: 'llm',
+      steps: [
+        { say: 'Pertama, bagian bawah halaman dulu ya.', goto: document.getElementById('bawah').dataset.spiderId, highlight: true, hold: 700 },
+        { say: 'Sekarang aku tekan tombol Export Python.', action: 'click', goto: document.getElementById('btn-export-python').dataset.spiderId, hold: 700 },
+        { say: 'Terakhir kembali ke ringkasan paling atas.', goto: document.getElementById('summary').dataset.spiderId, highlight: true, hold: 700 },
+      ],
+    });
+
+    // Sampel rig saat berjalan (bukti kaki bergerak, bukan hanya mata).
+    setTimeout(() => {
+      const a = sampelRig();
+      setTimeout(() => {
+        const b = sampelRig();
+        jejak('rig-1 rig=' + a.rig + ' core=' + a.core + ' femur[0..2]=' + a.femur.split(' ').slice(0, 3).join(' '));
+        jejak('rig-2 rig=' + b.rig + ' core=' + b.core + ' femur[0..2]=' + b.femur.split(' ').slice(0, 3).join(' '));
+        jejak('femur berubah antar waktu: ' + (a.femur !== b.femur || a.rig !== b.rig));
+      }, 600);
+    }, 900);
+
+    // Catat posisi + scroll tiap 400 ms selama rencana berjalan (membuktikan gerak bertahap).
+    window.__cuplikan = [];
+    const cuplik = setInterval(() => {
+      window.__cuplikan.push(Math.round(window.scrollY) + '@' + posisi() + '|vp' + window.innerWidth + 'x' + window.innerHeight);
+      if (window.__cuplikan.length > 60) { clearInterval(cuplik); }
+      document.getElementById('jejak').textContent = 'jejak:\n' + window.__jejak.join('\n') + '\ncuplikan: ' + window.__cuplikan.join('  ');
+    }, 400);
+
+    setTimeout(() => { window.dispatchEvent(new MessageEvent('message', { data: { type: 'spiderPlan', plan: window.__rencana() } })); }, 1600);
+
+    setTimeout(() => {
+      jejak('--- akhir ---');
+      jejak('pos akhir: ' + posisi());
+      jejak('scrollY akhir: ' + Math.round(window.scrollY) + ' | nilai unik pada cuplikan: ' + new Set(window.__cuplikan.map((c) => c.split('@')[0])).size);
+      jejak('fokus tersisa: ' + document.querySelectorAll('.spider-focus').length);
+      jejak('baris catatan: ' + document.querySelectorAll('#sp-log .sp-row').length);
+      jejak('target bisa diklik terdaftar: ' + document.querySelectorAll('[data-spider-id]').length);
+    }, 12000);
+  });
+</script>
+<script src="../media/spider.js"></script>
+</body>
+</html>

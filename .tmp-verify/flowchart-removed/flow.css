@@ -1,0 +1,274 @@
+/* Gaya untuk Flowchart Canvas (view "Generated Flowchart" di sidebar Date Skunder AI).
+   Kanvas digambar oleh flow.js; berkas ini mengatur tata letak panel, tombol, dan kolom perintah AI. */
+:root {
+    --fl-border: var(--vscode-panel-border, rgba(128, 128, 128, .35));
+    --fl-bg: var(--vscode-editor-background, #1e1e1e);
+    --fl-widget: var(--vscode-editorWidget-background, #252526);
+    --fl-input: var(--vscode-input-background, rgba(128, 128, 128, .14));
+}
+
+.fl-root {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    min-height: 240px;
+    font-size: 12px;
+    color: var(--vscode-foreground, #ddd);
+    overflow: hidden;
+}
+
+.fl-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px 4px;
+    flex-wrap: wrap;
+}
+
+.fl-head strong { font-size: 12.5px; }
+
+.fl-title {
+    flex: 1 1 120px;
+    min-width: 0;
+    padding: 3px 6px;
+    border-radius: 5px;
+    border: 1px solid var(--fl-border);
+    background: var(--fl-input);
+    color: inherit;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.fl-tools {
+    display: flex;
+    /* Satu baris yang bisa digulir mendatar supaya kanvas tetap tinggi (dulu 3 baris). */
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 4px;
+    padding: 0 8px 6px;
+    border-bottom: 1px solid var(--fl-border);
+    scrollbar-width: thin;
+}
+
+.fl-tools::-webkit-scrollbar { height: 6px; }
+.fl-tools::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, .4); border-radius: 3px; }
+
+.fl-btn {
+    padding: 2px 7px;
+    border-radius: 5px;
+    border: 1px solid var(--fl-border);
+    background: rgba(128, 128, 128, .14);
+    color: inherit;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex: 0 0 auto;
+}
+
+.fl-btn:hover { background: rgba(128, 128, 128, .28); }
+.fl-btn:disabled { opacity: .5; cursor: default; }
+
+.fl-btn.primary {
+    background: var(--vscode-button-background, #0e639c);
+    color: var(--vscode-button-foreground, #fff);
+    border-color: transparent;
+}
+
+.fl-btn.primary:hover { background: var(--vscode-button-hoverBackground, #1177bb); }
+
+.fl-btn.on {
+    background: var(--vscode-button-background, #0e639c);
+    color: var(--vscode-button-foreground, #fff);
+    border-color: transparent;
+}
+
+.fl-canvas-wrap {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 220px;
+    overflow: hidden;
+    background: var(--fl-bg);
+}
+
+#fl-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: default;
+    touch-action: none;
+}
+
+#fl-canvas.panning { cursor: grabbing; }
+#fl-canvas.linking { cursor: crosshair; }
+#fl-canvas.moving { cursor: move; }
+
+/* Minimap kecil di sudut kanan bawah kanvas. */
+#fl-mini {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 132px;
+    height: 92px;
+    border: 1px solid var(--fl-border);
+    border-radius: 6px;
+    background: var(--fl-widget);
+    opacity: .92;
+    cursor: pointer;
+}
+
+#fl-hint {
+    position: absolute;
+    left: 8px;
+    bottom: 6px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--fl-widget, #252526);
+    border: 1px solid var(--fl-border);
+    color: var(--vscode-foreground, #ddd);
+    font-size: 10px;
+    opacity: .92;
+    pointer-events: none;
+    max-width: calc(100% - 160px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Keterangan penjelasan diagram dari otak model. */
+.fl-explain {
+    border-top: 1px solid var(--fl-border);
+    padding: 5px 8px 6px;
+    max-height: 96px;
+    overflow-y: auto;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.fl-explain[hidden] { display: none; }
+
+.fl-explain-head {
+    font-weight: 700;
+    font-size: 11px;
+    margin-bottom: 3px;
+    opacity: .9;
+}
+
+#fl-explain-src { font-weight: 400; opacity: .7; }
+
+/* Kolom properti node terpilih. */
+#fl-props {
+    border-top: 1px solid var(--fl-border);
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 118px;
+    overflow-y: auto;
+}
+
+#fl-props.hidden { display: none; }
+
+.fl-row { display: flex; align-items: center; gap: 6px; }
+
+.fl-row label { flex: 0 0 62px; font-size: 10.5px; opacity: .8; }
+
+.fl-row input, .fl-row select, .fl-row textarea {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 3px 6px;
+    border-radius: 5px;
+    border: 1px solid var(--fl-border);
+    background: var(--fl-input);
+    color: inherit;
+    font-family: inherit;
+    font-size: 11.5px;
+}
+
+.fl-row textarea { resize: vertical; min-height: 34px; }
+
+/* Kotak perintah LLM. */
+.fl-ai {
+    border-top: 1px solid var(--fl-border);
+    padding: 6px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.fl-ai-input { display: flex; gap: 5px; }
+
+.fl-ai-input input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 4px 7px;
+    border-radius: 5px;
+    border: 1px solid var(--fl-border);
+    background: var(--fl-input);
+    color: inherit;
+    font-family: inherit;
+    font-size: 12px;
+}
+
+.fl-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+
+.fl-chip {
+    padding: 1px 7px;
+    border-radius: 999px;
+    border: 1px solid var(--fl-border);
+    background: rgba(128, 128, 128, .12);
+    color: inherit;
+    font-family: inherit;
+    font-size: 10.5px;
+    cursor: pointer;
+}
+
+.fl-chip:hover { background: rgba(128, 128, 128, .26); }
+
+.fl-log {
+    max-height: 78px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 10.7px;
+    line-height: 1.4;
+}
+
+.fl-log-row { padding: 3px 6px; border-radius: 6px; background: rgba(128, 128, 128, .12); word-break: break-word; }
+.fl-log-row.ok { background: rgba(89, 161, 79, .2); }
+.fl-log-row.bad { background: rgba(226, 87, 90, .2); }
+.fl-log-row.info { opacity: .78; font-style: italic; }
+
+.fl-status {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 3px 8px 6px;
+    font-size: 10.5px;
+    opacity: .82;
+    flex-wrap: wrap;
+}
+
+.fl-status .grow { flex: 1 1 auto; }
+
+/* Kotak isian melayang untuk mengganti nama node langsung di kanvas. */
+#fl-editor {
+    position: absolute;
+    z-index: 12;
+    display: none;
+    padding: 3px 6px;
+    border-radius: 5px;
+    border: 1px solid var(--vscode-focusBorder, #0e639c);
+    background: var(--fl-widget);
+    color: inherit;
+    font-family: inherit;
+    font-size: 12px;
+    min-width: 120px;
+}
+
+@media (max-width: 320px) {
+    #fl-mini { display: none; }
+}

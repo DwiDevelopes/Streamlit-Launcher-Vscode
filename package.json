@@ -1,8 +1,8 @@
 {
   "name": "streamlit-launcher",
   "displayName": "Streamlit Launcher For Vscode",
-  "description": "Automated preview and interactive data analysis for CSV and Excel files with charts, notes, and PDF export",
-  "version": "0.1.0",
+  "description": "Automated preview and interactive data analysis for CSV and Excel files with charts, notes, DOCX/PDF journal export, Excel report export and flowchart workflow image",
+  "version": "2.8.3",
   "author": "dwidevelopes",
   "publisher": "dwidevelopes",
   "license": "MIT",
@@ -21,16 +21,53 @@
   "categories": [
     "Data Science",
     "Visualization",
+    "Machine Learning",
+    "AI",
+    "Snippets",
     "Other"
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
-    "onCustomEditor:dateSkunder.viewer",
-    "onCommand:date-skunder.openPreview",
-    "onCommand:date-skunder.closePreview",
-    "onDebug"
+    "onCustomEditor:viewType",
+    "onView:dateSkunder.chatView",
+    "onView:dateSkunder.llamaView",
+    "onView:dateSkunder.petView",
+    "onView:dateSkunder.communityView"
   ],
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "dateSkunderAi",
+          "title": "Date Skunder AI",
+          "icon": "icon/ai.svg"
+        }
+      ]
+    },
+    "views": {
+      "dateSkunderAi": [
+        {
+          "id": "dateSkunder.chatView",
+          "name": "Chat AI",
+          "type": "webview"
+        },
+        {
+          "id": "dateSkunder.llamaView",
+          "name": "LLAMA Server",
+          "type": "webview"
+        },
+        {
+          "id": "dateSkunder.petView",
+          "name": "Pet Skin",
+          "type": "webview"
+        },
+        {
+          "id": "dateSkunder.communityView",
+          "name": "Community Chat",
+          "type": "webview"
+        }
+      ]
+    },
     "customEditors": [
       {
         "viewType": "dateSkunder.viewer",
@@ -59,6 +96,106 @@
       {
         "command": "date-skunder.openPreview",
         "title": "Date Skunder: Open Preview & Analysis"
+      },
+      {
+        "command": "date-skunder.exportDocx",
+        "title": "Date Skunder: Export Jurnal (DOCX)",
+        "icon": "$(file-text)"
+      },
+      {
+        "command": "date-skunder.exportPdf",
+        "title": "Date Skunder: Export Jurnal (PDF)",
+        "icon": "$(file-pdf)"
+      },
+      {
+        "command": "date-skunder.exportXlsx",
+        "title": "Date Skunder: Export Excel (.xlsx)",
+        "icon": "$(table)"
+      },
+      {
+        "command": "date-skunder.exportWorkflow",
+        "title": "Date Skunder: Generate Gambar Workflow (Flowchart)",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "date-skunder.exportPptx",
+        "title": "Date Skunder: Export Presentasi PowerPoint (PPTX)",
+        "icon": "$(screen-normal)"
+      },
+      {
+        "command": "date-skunder.exportPython",
+        "title": "Date Skunder: Export Paket Python (Seluruh Data + Skrip)",
+        "icon": "$(code)"
+      },
+      {
+        "command": "date-skunder.ai.openChat",
+        "title": "Date Skunder AI: Buka Chat AI",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "date-skunder.ai.voiceListen",
+        "title": "Date Skunder AI: Bicara Sekarang (Voice Input)",
+        "icon": "$(mic)"
+      },
+      {
+        "command": "date-skunder.llama.start",
+        "title": "Date Skunder AI: Jalankan LLAMA Server",
+        "icon": "$(play)"
+      },
+      {
+        "command": "date-skunder.llama.stop",
+        "title": "Date Skunder AI: Hentikan LLAMA Server",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "date-skunder.llama.scanModels",
+        "title": "Date Skunder AI: Cari Berkas .gguf di Seluruh Penyimpanan",
+        "icon": "$(search)"
+      },
+      {
+        "command": "date-skunder.llama.pickModel",
+        "title": "Date Skunder AI: Pilih Model .gguf",
+        "icon": "$(file-media)"
+      },
+      {
+        "command": "date-skunder.pet.open",
+        "title": "Date Skunder Pet: Buka Ganti Kostum Pet (Skin)",
+        "icon": "$(symbol-color)"
+      },
+      {
+        "command": "date-skunder.pet.pick",
+        "title": "Date Skunder Pet: Ganti Kostum Pet (Pilih Cepat)",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "date-skunder.community.open",
+        "title": "Date Skunder AI: Buka Community Chat",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "date-skunder.exportJson",
+        "title": "Date Skunder: Export JSON (Seluruh Analisis)",
+        "icon": "$(json)"
+      },
+      {
+        "command": "date-skunder.spider.tour",
+        "title": "Date Skunder Spider: Jalankan Semua Fitur",
+        "icon": "$(run-all)"
+      },
+      {
+        "command": "date-skunder.spider.check",
+        "title": "Date Skunder Spider: Cek Semua Kontrol",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "date-skunder.spider.nonstop",
+        "title": "Date Skunder Spider: Nyalakan/Matikan Kerja Nonstop",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "date-skunder.spider.stop",
+        "title": "Date Skunder Spider: Hentikan Pekerjaan",
+        "icon": "$(debug-stop)"
       }
     ],
     "menus": {
@@ -66,9 +203,562 @@
         {
           "command": "date-skunder.openPreview",
           "when": "resourceExtname =~ /\\.(csv|tsv|xlsx|xls|xlsm)$/",
-          "group": "navigation"
+          "group": "navigation@1"
+        },
+        {
+          "command": "date-skunder.exportDocx",
+          "when": "resourceExtname =~ /\\.(csv|tsv|xlsx|xls|xlsm)$/",
+          "group": "navigation@2"
+        },
+        {
+          "command": "date-skunder.exportPdf",
+          "when": "resourceExtname =~ /\\.(csv|tsv|xlsx|xls|xlsm)$/",
+          "group": "navigation@3"
+        },
+        {
+          "command": "date-skunder.exportXlsx",
+          "when": "resourceExtname =~ /\\.(csv|tsv|xlsx|xls|xlsm)$/",
+          "group": "navigation@4"
+        },
+        {
+          "command": "date-skunder.exportWorkflow",
+          "when": "resourceExtname =~ /\\.(csv|tsv|xlsx|xls|xlsm)$/",
+          "group": "navigation@5"
+        },
+        {
+          "command": "date-skunder.exportPptx",
+          "when": "resourceExtname =~ /\\.(csv|tsv|xlsx|xls|xlsm)$/",
+          "group": "navigation@6"
+        },
+        {
+          "command": "date-skunder.exportPython",
+          "when": "resourceExtname =~ /\\.(csv|tsv|xlsx|xls|xlsm)$/",
+          "group": "navigation@7"
+        },
+        {
+          "command": "date-skunder.exportJson",
+          "when": "resourceExtname =~ /\\.(csv|tsv|xlsx|xls|xlsm)$/",
+          "group": "navigation@8"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "date-skunder.exportDocx",
+          "when": "activeCustomEditorId == 'dateSkunder.viewer'",
+          "group": "navigation@1"
+        },
+        {
+          "command": "date-skunder.exportPdf",
+          "when": "activeCustomEditorId == 'dateSkunder.viewer'",
+          "group": "navigation@2"
+        },
+        {
+          "command": "date-skunder.exportXlsx",
+          "when": "activeCustomEditorId == 'dateSkunder.viewer'",
+          "group": "navigation@3"
+        },
+        {
+          "command": "date-skunder.exportWorkflow",
+          "when": "activeCustomEditorId == 'dateSkunder.viewer'",
+          "group": "navigation@4"
+        },
+        {
+          "command": "date-skunder.exportPptx",
+          "when": "activeCustomEditorId == 'dateSkunder.viewer'",
+          "group": "navigation@5"
+        },
+        {
+          "command": "date-skunder.exportPython",
+          "when": "activeCustomEditorId == 'dateSkunder.viewer'",
+          "group": "navigation@6"
+        },
+        {
+          "command": "date-skunder.exportJson",
+          "when": "activeCustomEditorId == 'dateSkunder.viewer'",
+          "group": "navigation@7"
+        },
+        {
+          "command": "date-skunder.spider.tour",
+          "when": "activeCustomEditorId == 'dateSkunder.viewer'",
+          "group": "spider@1"
+        },
+        {
+          "command": "date-skunder.spider.check",
+          "when": "activeCustomEditorId == 'dateSkunder.viewer'",
+          "group": "spider@2"
+        },
+        {
+          "command": "date-skunder.spider.stop",
+          "when": "activeCustomEditorId == 'dateSkunder.viewer'",
+          "group": "spider@3"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "date-skunder.exportXlsx",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.exportWorkflow",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.exportPptx",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.exportPython",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.llama.scanModels",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.llama.pickModel",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.llama.start",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.llama.stop",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.ai.voiceListen",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.pet.open",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.pet.pick",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.community.open",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.exportJson",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.spider.tour",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.spider.check",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.spider.nonstop",
+          "when": "true"
+        },
+        {
+          "command": "date-skunder.spider.stop",
+          "when": "true"
         }
       ]
+    },
+    "keybindings": [
+      {
+        "command": "date-skunder.openPreview",
+        "key": "ctrl+alt+o",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.exportDocx",
+        "key": "ctrl+alt+d",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.exportPdf",
+        "key": "ctrl+alt+p",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.exportXlsx",
+        "key": "ctrl+alt+e",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.exportWorkflow",
+        "key": "ctrl+alt+w",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.exportPptx",
+        "key": "ctrl+alt+s",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.exportPython",
+        "key": "ctrl+alt+y",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.exportJson",
+        "key": "ctrl+alt+j",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.ai.openChat",
+        "key": "ctrl+alt+c",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.ai.voiceListen",
+        "key": "ctrl+alt+v",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.llama.start",
+        "key": "ctrl+alt+l",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.llama.stop",
+        "key": "ctrl+shift+alt+l",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.llama.scanModels",
+        "key": "ctrl+alt+m",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.llama.pickModel",
+        "key": "ctrl+shift+alt+m",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.pet.open",
+        "key": "ctrl+alt+g",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.pet.pick",
+        "key": "ctrl+shift+alt+g",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.community.open",
+        "key": "ctrl+alt+h",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.spider.tour",
+        "key": "ctrl+alt+t",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.spider.check",
+        "key": "ctrl+alt+k",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.spider.nonstop",
+        "key": "ctrl+alt+n",
+        "when": "!terminalFocus"
+      },
+      {
+        "command": "date-skunder.spider.stop",
+        "key": "ctrl+alt+x",
+        "when": "!terminalFocus"
+      }
+    ],
+    "configuration": {
+      "title": "Date Skunder",
+      "properties": {
+        "dateSkunder.authorName": {
+          "type": "string",
+          "default": "Dwi Bakti N¹, Name², Name³, Name⁴",
+          "description": "Nama penulis yang dicantumkan pada jurnal hasil export."
+        },
+        "dateSkunder.affiliation": {
+          "type": "string",
+          "default": "Program Studi {Isi}, Universitas Bina Sarana Informatika, Tanggerang, Indonesia ",
+          "description": "Afiliasi penulis (contoh: Program Studi ..., Universitas ...)"
+        },
+        "dateSkunder.email": {
+          "type": "string",
+          "default": "dwibakti76@gmail.com¹",
+          "description": "Email penulis korespondensi"
+        },
+        "dateSkunder.exportFolder": {
+          "type": "string",
+          "default": "",
+          "description": "Folder tujuan export (path absolut). Kosongkan untuk menyimpan di folder yang sama dengan file sumber."
+        },
+        "dateSkunder.autoRevealInFileManager": {
+          "type": "boolean",
+          "default": true,
+          "description": "Tampilkan file hasil export di file manager (Explorer/Finder) secara otomatis."
+        },
+        "dateSkunder.llama.modelPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "markdownDescription": "Folder tambahan yang dipindai untuk berkas model `.gguf`. Pencarian otomatis sudah mencakup semua drive (C:, D:, E:, flashdisk), folder `Downloads`/`Documents`/`Desktop`, serta folder aplikasi model (LM Studio, GPT4All, Ollama, Jan). Isi opsi ini bila model disimpan di folder khusus. Contoh: `D:\\\\models`."
+        },
+        "dateSkunder.llama.port": {
+          "type": "number",
+          "default": 8081,
+          "description": "Port HTTP llama-server (endpoint /v1/chat/completions)."
+        },
+        "dateSkunder.llama.contextSize": {
+          "type": "number",
+          "default": 4096,
+          "description": "Ukuran jendela konteks model (-c)."
+        },
+        "dateSkunder.llama.gpuLayers": {
+          "type": "number",
+          "default": 0,
+          "description": "Jumlah lapisan yang dijalankan di GPU (-ngl). 0 = CPU saja."
+        },
+        "dateSkunder.llama.threads": {
+          "type": "number",
+          "default": 0,
+          "description": "Jumlah thread CPU (-t). 0 = ditentukan llama-server."
+        },
+        "dateSkunder.llama.extraArgs": {
+          "type": "string",
+          "default": "",
+          "description": "Argumen tambahan llama-server, dipisah spasi. Contoh: --flash-attn --no-mmap"
+        },
+        "dateSkunder.llama.scanDepth": {
+          "type": "number",
+          "default": 4,
+          "description": "Kedalaman maksimum pemindaian berkas .gguf pada setiap folder pencarian (termasuk saat menelusuri seluruh drive)."
+        },
+        "dateSkunder.llama.scanTimeoutSeconds": {
+          "type": "number",
+          "default": 90,
+          "description": "Batas waktu (detik) pencarian berkas .gguf di seluruh penyimpanan. Hasil yang sudah ditemukan tetap dipakai bila batas waktu tercapai."
+        },
+        "dateSkunder.llama.autoScan": {
+          "type": "boolean",
+          "default": true,
+          "description": "Cari berkas .gguf secara otomatis saat ekstensi aktif: folder umum dulu, lalu seluruh drive di latar belakang (tidak memblokir editor)."
+        },
+        "dateSkunder.ai.temperature": {
+          "type": "number",
+          "default": 0.2,
+          "description": "Tingkat kreativitas jawaban chat (0 = paling faktual, mengikuti data)."
+        },
+        "dateSkunder.ai.maxTokens": {
+          "type": "number",
+          "default": 0,
+          "description": "Batas panjang jawaban. 0 = dibiarkan ditentukan model."
+        },
+        "dateSkunder.ai.autoStartServer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Jalankan llama-server otomatis saat pesan pertama dikirim di Chat AI."
+        },
+        "dateSkunder.ai.includeStats": {
+          "type": "boolean",
+          "default": true,
+          "description": "Sertakan statistik berkas yang dianalisis sebagai konteks jawaban chat."
+        },
+        "dateSkunder.ai.systemExtra": {
+          "type": "string",
+          "default": "",
+          "description": "Instruksi tambahan untuk model (mis. gaya bahasa atau fokus analisis)."
+        },
+        "dateSkunder.ai.persona": {
+          "type": "string",
+          "enum": [
+            "netral",
+            "ringkas",
+            "ramah",
+            "tegas",
+            "analitis",
+            "guru"
+          ],
+          "enumDescriptions": [
+            "Netral · profesional: langsung ke inti tanpa basa-basi.",
+            "Sangat ringkas: maksimal 4 baris atau 4 poin.",
+            "Ramah: hangat dan membesarkan hati, tetap padat.",
+            "Tegas: langsung pada sasaran, tekankan angka dan tindakan.",
+            "Analitis: tunjukkan perhitungan singkat sebelum menyimpulkan.",
+            "Guru: istilah teknis dijelaskan dengan bahasa sederhana."
+          ],
+          "default": "netral",
+          "markdownDescription": "Sifat (kepribadian) Chat AI. Bisa juga diubah langsung dari panel Chat AI. Aturan anti-halusinasi dan bentuk jawaban tetap berlaku untuk semua sifat."
+        },
+        "dateSkunder.ai.personaCustom": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Sifat kustom untuk Chat AI, ditempel setelah sifat bawaan. Contoh: `Selalu jawab sebagai CFO yang ringkas, sebutkan dampak rupiah dan risiko.`"
+        },
+        "dateSkunder.voice.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Tampilkan dan aktifkan fitur suara di sidebar Chat AI (bicara → teks → jawaban dibacakan)."
+        },
+        "dateSkunder.voice.sttEngine": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "system",
+            "web",
+            "off"
+          ],
+          "enumDescriptions": [
+            "Pilih otomatis: pengenalan bawaan webview bila tersedia, jika tidak memakai pengenal ucapan sistem.",
+            "Selalu pakai pengenal ucapan sistem (Windows: System.Speech, offline).",
+            "Selalu pakai Web Speech API (hanya bila lingkungan webview menyediakannya, mis. VS Code for the Web).",
+            "Matikan mikrofon."
+          ],
+          "default": "auto",
+          "description": "Mesin pengenalan ucapan (bicara → teks)."
+        },
+        "dateSkunder.voice.ttsEngine": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "webview",
+            "system",
+            "off"
+          ],
+          "enumDescriptions": [
+            "Suara webview bila tersedia, jika tidak suara sistem.",
+            "Selalu pakai suara webview (daftar suara OS yang tampil di pemilih suara).",
+            "Selalu pakai suara sistem (Windows: SAPI lewat PowerShell).",
+            "Matikan suara jawaban."
+          ],
+          "default": "auto",
+          "description": "Mesin suara untuk membacakan jawaban AI."
+        },
+        "dateSkunder.voice.autoSend": {
+          "type": "boolean",
+          "default": true,
+          "description": "Kirim otomatis teks hasil bicara ke AI. Bila dimatikan, teks ditaruh di kotak pesan untuk dicek dulu."
+        },
+        "dateSkunder.voice.autoListen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Mikrofon menyala lagi otomatis setelah AI selesai bicara (percakapan suara berulang)."
+        },
+        "dateSkunder.voice.listenSeconds": {
+          "type": "number",
+          "default": 12,
+          "description": "Batas waktu mendengar satu ucapan (detik). Mendengar berhenti lebih cepat setelah Anda selesai bicara."
+        },
+        "dateSkunder.voice.language": {
+          "type": "string",
+          "default": "id-ID",
+          "description": "Bahasa suara (kode BCP-47), mis. id-ID atau en-US. Bila pengenal ucapan bahasa tersebut belum terpasang, pengenal bawaan Windows yang dipakai."
+        },
+        "dateSkunder.voice.gender": {
+          "type": "string",
+          "enum": [
+            "female",
+            "male",
+            "any"
+          ],
+          "enumDescriptions": [
+            "Utamakan suara perempuan.",
+            "Utamakan suara laki-laki.",
+            "Tidak memilih jenis suara."
+          ],
+          "default": "female",
+          "description": "Jenis suara AI yang dipilih otomatis."
+        },
+        "dateSkunder.voice.voiceName": {
+          "type": "string",
+          "default": "",
+          "description": "Nama suara yang dipakai (isi otomatis saat memilih dari daftar di sidebar). Kosong = pilih otomatis (perempuan)."
+        },
+        "dateSkunder.voice.rate": {
+          "type": "number",
+          "default": 1,
+          "description": "Kecepatan bicara (0.5 – 2, 1 = normal)."
+        },
+        "dateSkunder.voice.pitch": {
+          "type": "number",
+          "default": 1,
+          "description": "Nada suara webview (0 – 2, 1 = normal). Tidak berlaku untuk suara sistem."
+        },
+        "dateSkunder.voice.volume": {
+          "type": "number",
+          "default": 1,
+          "description": "Volume suara (0 – 1)."
+        },
+        "dateSkunder.spider.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Tampilkan laba-laba pemandu (spider) di panel visualisasi analisis."
+        },
+        "dateSkunder.spider.voice": {
+          "type": "boolean",
+          "default": false,
+          "description": "Bacakan juga setiap penjelasan spider dengan suara (memakai suara perempuan dari sistem)."
+        },
+        "dateSkunder.spider.allowActions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Izinkan spider menekan tombol halaman yang aman (tombol export, tautan navigasi, tab filter stok) saat kamu memerintahkannya."
+        },
+        "dateSkunder.spider.autoRun": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mode eksekusi otomatis: setiap instruksi ke spider langsung dikerjakan di halaman (berjalan, menyorot, lalu menekan tombol, memindah tab, mengubah dropdown, atau mengisi kolom) tanpa diminta dua kali. Tombol ⚡ Auto di panel spider bisa mematikannya sementara."
+        },
+        "dateSkunder.spider.walkSpeed": {
+          "type": "number",
+          "default": 1,
+          "description": "Kecepatan jalan spider (0.5 = santai, 2 = cepat). Tetap berjalan bertahap, tidak melompat instan."
+        },
+        "dateSkunder.spider.skin": {
+          "type": "string",
+          "enum": [
+            "baja",
+            "merah",
+            "zamrud",
+            "senja",
+            "ungu",
+            "es",
+            "emas",
+            "ninja"
+          ],
+          "enumDescriptions": [
+            "Baja Klasik — tampilan bawaan, abu baja dengan mata biru dingin.",
+            "Merah Menyala — badan merah dengan syal.",
+            "Zamrud Rimba — hijau zamrud dengan topi.",
+            "Senja Jingga — oranye senja dengan kacamata.",
+            "Ungu Neon — ungu terang dengan dasi kupu-kupu.",
+            "Es Kristal — biru muda dengan halo.",
+            "Emas Royal — emas berkilau dengan mahkota.",
+            "Ninja Bayangan — hitam pekat dengan ikat kepala dan mata merah."
+          ],
+          "default": "baja",
+          "description": "Kostum (skin) pet Spider di panel analisis. Ganti langsung lewat view “Pet Skin” di sidebar Date Skunder AI, atau lewat perintah “Date Skunder Pet: Ganti Kostum Pet”."
+        },
+        "dateSkunder.spider.nonstopSeconds": {
+          "type": "number",
+          "default": 90,
+          "description": "Jeda antar-putaran mode kerja nonstop pet (detik, 30 – 3600). Setiap putaran pet memberi satu masukan + detail baru dari data lalu menjalankan langkah aman pendukungnya, terus-menerus selama halaman analisis terbuka sampai tombol 🔁 Nonstop dimatikan."
+        },
+        "dateSkunder.spider.maxSteps": {
+          "type": "number",
+          "default": 8,
+          "description": "Jumlah langkah maksimum dalam satu instruksi untuk spider (3 – 12)."
+        },
+        "dateSkunder.community.webKey": {
+          "type": "string",
+          "default": "AIzaSyBIyAz-ZOIL_CzvNHC6PpYNr7NJJgzaVqo",
+          "markdownDescription": "Kunci web Firebase untuk fitur **Community Chat** (view di bawah Pet Skin). Salin dari Firebase Console → Project settings → Your apps → Web app pada proyek `streamlit-launcher-vscode`. Nilai bawaan telah terhubung ke proyek publik `streamlit-launcher-vscode`; alternatifnya set variabel lingkungan `DATASKUNDER_FIREBASE_API_KEY` sebelum VS Code dijalankan. Ruang komunitas bersifat publik: yang tersimpan hanya username, deskripsi profil, isi pesan, dan waktu (gambar tidak diunggah).",
+          "scope": "application"
+        }
+      }
     }
   },
   "scripts": {
@@ -77,15 +767,13 @@
     "watch": "node esbuild.js --watch",
     "package": "node esbuild.js --production"
   },
-  "recommendations": [
-    "dwidevelopes.streamlit-launcher"
-  ],
   "dependencies": {
     "chart.js": "^4.4.1",
-    "pdf": "^0.1.0",
-    "pdfkit": "^0.20.2",
-    "pdfreader": "^3.0.8",
-    "react-pdf": "^11.0.0",
+    "docx": "^9.9.0",
+    "exceljs": "^4.4.0",
+    "i": "^0.3.7",
+    "pdf-lib": "^1.17.1",
+    "pptxgenjs": "^4.0.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

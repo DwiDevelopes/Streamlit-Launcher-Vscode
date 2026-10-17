@@ -1,0 +1,140 @@
+/* ── Bilah kontrol & kanvas diagram pohon C4.5 ───────────────────────────── */
+.treehost {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    border-radius: 8px;
+    background: var(--vscode-editor-background, rgba(0, 0, 0, .12));
+    max-height: 660px;
+    overflow: auto;
+}
+
+.treehost .treewrap {
+    overflow: visible;
+}
+
+.treebar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 9px 18px;
+    padding: 10px 12px;
+    margin-top: 10px;
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .25));
+    border-radius: 8px;
+    background: var(--vscode-editorWidget-background, rgba(128, 128, 128, .07));
+}
+
+.tctl {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: .95;
+}
+
+.tctl select,
+.tctl input[type="search"] {
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 3px 6px;
+    max-width: 170px;
+    border-radius: 5px;
+    border: 1px solid var(--vscode-input-border, var(--vscode-panel-border, rgba(128, 128, 128, .4)));
+    background: var(--vscode-input-background, rgba(0, 0, 0, .2));
+    color: var(--vscode-input-foreground, inherit);
+}
+
+.tctl input[type="search"] {
+    min-width: 190px;
+    max-width: 260px;
+}
+
+.tctl input[type="range"] {
+    width: 112px;
+    accent-color: var(--vscode-button-background, #2563eb);
+    cursor: pointer;
+}
+
+.tctl b {
+    min-width: 34px;
+    text-align: right;
+    font-size: 11.5px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.tctl.chk {
+    font-weight: 500;
+}
+
+.tctl.chk input[type="checkbox"] {
+    accent-color: var(--vscode-button-background, #2563eb);
+}
+
+.tbtns {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.tbtns button {
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid var(--vscode-button-border, var(--vscode-panel-border, rgba(128, 128, 128, .4)));
+    background: var(--vscode-button-secondaryBackground, rgba(128, 128, 128, .16));
+    color: var(--vscode-button-secondaryForeground, var(--vscode-foreground, inherit));
+}
+
+.tbtns button:hover {
+    background: var(--vscode-button-secondaryHoverBackground, rgba(128, 128, 128, .3));
+}
+
+/* ── Kepala kartu: judul + tombol aksi sebaris ──────────────────────────── */
+.card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.card-head h3 {
+    margin: 0;
+}
+
+/* ── Baris KPI rapat untuk seksi Decision Tree (12 kartu) ───────────────── */
+.kpis.kpis-6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+    .kpis.kpis-6 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .kpis.kpis-6 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ── Diagnostik & rekomendasi optimasi model ────────────────────────────── */
+.dt-advisor-card {
+    background: var(--vscode-sideBar-background, rgba(128, 128, 128, .08));
+    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, .28));
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 14px;
+}
+

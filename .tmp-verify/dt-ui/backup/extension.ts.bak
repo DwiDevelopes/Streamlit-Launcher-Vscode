@@ -1,0 +1,473 @@
+import * as vscode from 'vscode';
+import * as path from 'path';
+import * as XLSX from 'xlsx';
+import { analyzeWorkbook } from './analysis';
+import { treeOptionsFromSettings } from './treeConfig';
+import { exportReport } from './exporter';
+import { exportPython } from './pythonExport';
+import { registerAiViews, AiHub } from './aiViews';
+import { registerPetView } from './petView';
+import { registerCommunityView } from './community';
+import { buildSpiderWebConfig } from './petSkins';
+import { addMissionProgress, missionById, MissionId } from './petMissions';
+import { buildStatsContext } from './analysisStore';
+import { buildSpiderPlan, SpiderTarget, SpiderRunStep, explainSpiderRun } from './spider';
+import { trainDecisionTree } from './decisionTree';
+
+const VIEW_TYPE = 'dateSkunder.viewer';
+
+class SkunderDocument implements vscode.CustomDocument {
+	constructor(public readonly uri: vscode.Uri) { }
+	dispose(): void { }
+}
+
+class SkunderProvider implements vscode.CustomReadonlyEditorProvider<SkunderDocument> {
+	constructor(
+		private readonly ctx: vscode.ExtensionContext,
+		private readonly hub?: AiHub,
+		private communityProvider?: import('./community').CommunityViewProvider,
+	) { }
+
+	openCustomDocument(uri: vscode.Uri): SkunderDocument {
+		return new SkunderDocument(uri);
+	}
+
+	async resolveCustomEditor(doc: SkunderDocument, panel: vscode.WebviewPanel): Promise<void> {
+		const media = vscode.Uri.joinPath(this.ctx.extensionUri, 'media');
+		const icon = vscode.Uri.joinPath(this.ctx.extensionUri, 'icon');
+		const video = vscode.Uri.joinPath(this.ctx.extensionUri, 'video');
+		panel.webview.options = { enableScripts: true, localResourceRoots: [media, icon, video] };
+		panel.webview.html = this.getHtml(panel.webview, media, icon, video);
+
+		const fileName = path.basename(doc.uri.fsPath);
+		// Daftarkan panel ke hub supaya perubahan konfigurasi (mis. kostum pet) bisa disiarkan ke halaman ini.
+		this.hub?.attachPanel(panel);
+		panel.onDidDispose(() => this.hub?.detachPanel(panel));
+		const load = async () => {
+			try {
+				const bytes = await vscode.workspace.fs.readFile(doc.uri);
+				const payload = analyzeWorkbook(bytes, fileName, treeOptionsFromSettings());
+				this.hub?.recordAnalysis(doc.uri, fileName, payload);
+				// Konfigurasi laba-laba (termasuk kostum yang dipakai) dibangun di satu tempat: src/petSkins.ts.
+				// Konteks dikirim supaya kostum yang masih terkunci otomatis kembali ke bawaan.
+				panel.webview.postMessage(buildSpiderWebConfig(this.ctx));
+				panel.webview.postMessage({ type: 'data', payload });
+			} catch (e) {
+				panel.webview.postMessage({ type: 'error', message: `Failed to read file: ${String(e)}` });
+			}
+		};
+
+		panel.webview.onDidReceiveMessage(async (m) => {
+			try {
+				if (m.type === 'ready' || m.type === 'reload') {
+					await load();
+				} else if (m.type === 'openExternalOnlineProject' || m.type === 'openExternalOfflineProject') {
+					await vscode.env.openExternal(vscode.Uri.parse(m.url));
+				} else if (m.type === 'saveDocx') {
+					await exportReport('docx', doc.uri, m.sheetName);
+				} else if (m.type === 'savePdf') {
+					await exportReport('pdf', doc.uri, m.sheetName);
+				} else if (m.type === 'saveXlsx') {
+					await exportReport('xlsx', doc.uri, m.sheetName);
+				} else if (m.type === 'saveWorkflow') {
+					await exportReport('workflow', doc.uri, m.sheetName);
+				} else if (m.type === 'savePptx') {
+					await exportReport('pptx', doc.uri, m.sheetName);
+				} else if (m.type === 'savePython') {
+					await exportPython(doc.uri, m.sheetName);
+				} else if (m.type === 'saveJson') {
+					// Seluruh hasil analisis berkas ini sebagai .json (dibaca mesin).
+					await exportReport('json', doc.uri, m.sheetName);
+				} else if (m.type === 'spiderAsk') {
+					await this.planSpider(panel, doc, m);
+				} else if (m.type === 'spiderResult') {
+					// Pet selesai menjalankan rencananya → otak model menulis penjelasan hasilnya.
+					await this.explainSpiderResult(panel, doc, m);
+				} else if (m.type === 'spiderEvent') {
+					// Peristiwa pekerjaan pet (export/cek/tur/nonstop) → progres misi & view Pet Skin.
+					await this.recordSpiderEvent(panel, m);
+				} else if (m.type === 'openPetSkin') {
+					// Tombol “Ganti kostum” di panel pet membuka view Pet Skin.
+					await vscode.commands.executeCommand('dateSkunder.petView.focus');
+				} else if (m.type === 'openCommunity') {
+					// Tombol Community Chat di panel pet membuka view Community Chat.
+					await vscode.commands.executeCommand('dateSkunder.communityView.focus');
+				} else if (m.type === 'trainCustomTree') {
+					await this.trainCustomDecisionTree(panel, doc, m);
+				} else if (m.type === 'shareAiToCommunity') {
+					// Kirim hasil analisis AI/C4.5 dari panel analisis ke Community Chat.
+					const text = String(m.text || '').trim();
+					if (text && this.communityProvider) {
+						// Fokus ke Community Chat dulu agar pengguna melihatnya.
+						await vscode.commands.executeCommand('dateSkunder.communityView.focus');
+						this.communityProvider.sendAiResult(text);
+					}
+				} else if (m.type === 'shareSkinToCommunity') {
+					// Kirim data skin dari panel pet ke Community Chat.
+					if (this.communityProvider) {
+						await vscode.commands.executeCommand('dateSkunder.communityView.focus');
+						this.communityProvider.sendSkinData(m.payload);
+					}
+				}
+			} catch (e) {
+				vscode.window.showErrorMessage(`Date Skunder: ${e instanceof Error ? e.message : String(e)}`);
+			}
+		});
+
+		// Auto-refresh when file changes on disk
+		const watcher = vscode.workspace.createFileSystemWatcher(
+			new vscode.RelativePattern(vscode.Uri.joinPath(doc.uri, '..'), fileName)
+		);
+		watcher.onDidChange(load);
+		panel.onDidDispose(() => watcher.dispose());
+	}
+
+	/**
+	 * Spider: susun rencana langkah (gerak + sorot + penjelasan) dari instruksi pengguna.
+	 * LLM lokal dipakai bila llama-server aktif; bila tidak, perencana lokal dari angka analisis.
+	 */
+	private async planSpider(panel: vscode.WebviewPanel, doc: SkunderDocument, msg: any): Promise<void> {
+		const request = String(msg?.text ?? '').trim();
+		if (!request) { return; }
+		const fileName = path.basename(doc.uri.fsPath);
+		const sheetName = String(msg?.sheetName ?? '');
+		const targets: SpiderTarget[] = Array.isArray(msg?.targets)
+			? msg.targets
+				.filter((t: any) => t && typeof t.id === 'string' && t.label)
+				.slice(0, 60)
+				.map((t: any) => ({ id: String(t.id), label: String(t.label), kind: t.kind ? String(t.kind) : undefined, click: !!t.click }))
+			: [];
+
+		const hub = this.hub;
+		const cfg = hub?.config();
+		const entry = this.findStoredAnalysis(fileName);
+		// Ringkasan dijaga pendek: prompt + daftar target + keluaran harus tetap muat di jendela model.
+		// Otak penuh: pet menyusun rencana + penjelasan langkah dengan konteks statistik seluas mungkin.
+		const summary = entry ? buildStatsContext(entry, sheetName || undefined, 7000) : 'Belum ada analisis tersimpan untuk berkas ini.';
+		const maxSteps = Math.min(12, Math.max(3, Math.round(vscode.workspace.getConfiguration('dateSkunder').get<number>('spider.maxSteps') ?? 8)));
+
+		panel.webview.postMessage({ type: 'spiderStatus', state: 'thinking' });
+		try {
+			const plan = await buildSpiderPlan({
+				request,
+				fileName,
+				sheetName: sheetName || entry?.sheetNames?.[0] || '',
+				targets,
+				summary,
+				facts: summary.split('\n'),
+				running: !!hub?.server.running,
+				port: cfg?.port ?? 8081,
+				temperature: Math.max(0.2, cfg?.temperature ?? 0.2),
+				maxTokens: cfg?.maxTokens ?? 0,
+				maxSteps,
+				contextSize: cfg?.contextSize ?? 4096,
+			});
+			if (!(cfg?.spiderAllowActions ?? true)) {
+				plan.note = [plan.note, 'Aksi klik sedang dimatikan lewat pengaturan dateSkunder.spider.allowActions.'].filter(Boolean).join(' ');
+			}
+			// Permintaan eksplisit dari panel (mis. tombol “Jalankan semua fitur”) tetap dieksekusi walau ⚡ Auto mati.
+			if (msg?.force) { plan.force = true; }
+			panel.webview.postMessage({ type: 'spiderPlan', request, plan });
+		} catch (e) {
+			panel.webview.postMessage({
+				type: 'spiderPlan',
+				request,
+				plan: { reply: `Maaf, rencana gagal disusun: ${e instanceof Error ? e.message : String(e)}`, steps: [], source: 'local' },
+			});
+		}
+	}
+
+	/**
+	 * Penjelasan hasil eksekusi oleh otak model penuh: setelah pet selesai menjalankan langkahnya,
+	 * llama-server menulis apa yang dikerjakan, hasil mana yang berhasil/gagal, dan maknanya bagi data.
+	 * Bila server belum berjalan, pet diberi tahu apa adanya (tidak ada penjelasan template).
+	 */
+	private async explainSpiderResult(panel: vscode.WebviewPanel, doc: SkunderDocument, msg: any): Promise<void> {
+		const steps: SpiderRunStep[] = Array.isArray(msg?.steps)
+			? msg.steps
+				.filter((s: any) => s && typeof s === 'object')
+				.slice(0, 24)
+				.map((s: any) => ({
+					say: s.say ? String(s.say) : undefined,
+					target: s.target ? String(s.target) : undefined,
+					action: s.action ? String(s.action) : null,
+					ok: s.ok !== false,
+					detail: s.detail ? String(s.detail) : undefined,
+				}))
+			: [];
+		if (!steps.length) { return; }
+		const hub = this.hub;
+		if (!hub?.server.running) {
+			panel.webview.postMessage({
+				type: 'spiderExplain',
+				ok: false,
+				note: 'Penjelasan otak model belum bisa ditulis: llama-server belum berjalan. Tekan ▶ di sidebar Chat AI (atau view LLAMA Server) supaya pet bisa menjelaskan hasil kerjanya.',
+			});
+			return;
+		}
+		const cfg = hub.config();
+		const fileName = path.basename(doc.uri.fsPath);
+		const sheetName = String(msg?.sheetName ?? '');
+		const entry = this.findStoredAnalysis(fileName);
+		const summary = entry ? buildStatsContext(entry, sheetName || undefined, 7000) : '';
+		panel.webview.postMessage({ type: 'spiderExplain', ok: true, pending: true });
+		try {
+			const text = await explainSpiderRun({
+				request: String(msg?.request ?? ''),
+				fileName,
+				sheetName: sheetName || (entry?.sheetNames?.[0] ?? ''),
+				summary,
+				steps,
+				port: cfg.port,
+				temperature: Math.max(0.2, cfg.temperature),
+				maxTokens: cfg.maxTokens,
+				contextSize: cfg.contextSize,
+			});
+			panel.webview.postMessage(text
+				? { type: 'spiderExplain', ok: true, text }
+				: { type: 'spiderExplain', ok: false, note: 'Otak model tidak membalas, jadi penjelasan hasil belum bisa ditulis. Coba lagi sebentar lagi.' });
+		} catch (e) {
+			panel.webview.postMessage({ type: 'spiderExplain', ok: false, note: `Penjelasan gagal disusun: ${e instanceof Error ? e.message : String(e)}` });
+		}
+	}
+
+	/**
+	 * Peristiwa dari pet (export/cek/tur/nonstop) → progres misi tersimpan + view Pet Skin ikut diperbarui.
+	 * Misi yang baru selesai memberi tahu panel supaya pemakainya tahu kostum baru sudah terbuka.
+	 */
+	private async recordSpiderEvent(panel: vscode.WebviewPanel, msg: any): Promise<void> {
+		const deltas: Partial<Record<MissionId, number>> = {};
+		const kind = String(msg?.kind ?? '');
+		if (kind === 'run') {
+			const angka = (v: unknown, maks: number) => Math.max(0, Math.min(maks, Math.round(Number(v) || 0)));
+			const exports = angka(msg?.exports, 24);
+			if (exports > 0) { deltas['first-export'] = exports; }
+			if (exports >= 3) { deltas['export-all'] = exports; }
+			if (angka(msg?.jurnal, 12) > 0) { deltas['first-jurnal'] = angka(msg?.jurnal, 12); }
+			if (angka(msg?.flow, 12) > 0) { deltas['first-workflow'] = angka(msg?.flow, 12); }
+			if (angka(msg?.json, 12) > 0) { deltas['first-json'] = angka(msg?.json, 12); }
+			if (angka(msg?.pptx, 12) > 0) { deltas['first-pptx'] = angka(msg?.pptx, 12); }
+			if (angka(msg?.typed, 24) > 0) { deltas['typist'] = angka(msg?.typed, 24); }
+			if (angka(msg?.tabs, 24) > 0) { deltas['navigator'] = angka(msg?.tabs, 24); }
+			deltas['marathon'] = angka(msg?.executed, 60);
+			if (msg?.tour) { deltas['tour-master'] = 1; }
+			if (msg?.check) { deltas['checker'] = 1; }
+		} else if (kind === 'nonstop') {
+			deltas['nonstop-runner'] = 1;
+		}
+		const selesai = await addMissionProgress(this.ctx, deltas);
+		this.hub?.refreshPetView();
+		if (!selesai.length) { return; }
+		const bagian: string[] = [];
+		for (const id of selesai) {
+			const misi = missionById(id);
+			if (misi) { bagian.push(`“${misi.name}” → kostum ${misi.rewardSkin} terbuka`); }
+		}
+		panel.webview.postMessage({ type: 'spiderMission', ids: selesai, text: `🎉 Misi selesai: ${bagian.join('; ')}. Buka view Pet Skin untuk memakainya.` });
+	}
+
+	/** Cari hasil analisis berkas ini di penyimpanan bersama (dipakai spider sebagai konteks). */
+	private findStoredAnalysis(fileName: string) {
+		const store = this.hub?.store;
+		if (!store) { return undefined; }
+		for (const item of store.list()) {
+			const entry = store.get(item.id);
+			if (entry && entry.fileName === fileName) { return entry; }
+		}
+		return store.last();
+	}
+
+	/**
+	 * Pelatihan pohon keputusan C4.5 dengan atribut target dan parameter kustom dari pengguna.
+	 */
+	private async trainCustomDecisionTree(panel: vscode.WebviewPanel, doc: SkunderDocument, msg: any): Promise<void> {
+		const sheetName = String(msg?.sheetName ?? '');
+		const options = msg?.options ?? {};
+		const targetAttribute = String(options.targetAttribute ?? '').trim();
+		if (!targetAttribute) {
+			panel.webview.postMessage({ type: 'customTreeError', message: 'Target atribut wajib dipilih.' });
+			return;
+		}
+
+		try {
+			const bytes = await vscode.workspace.fs.readFile(doc.uri);
+			const wb = XLSX.read(bytes, { type: 'buffer', cellDates: true, raw: false });
+			const targetSheet = sheetName || wb.SheetNames[0];
+			const ws = wb.Sheets[targetSheet];
+			if (!ws) {
+				panel.webview.postMessage({ type: 'customTreeError', message: `Sheet "${targetSheet}" tidak ditemukan.` });
+				return;
+			}
+			const aoa: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+			const clean = aoa.filter((r) => r && r.some((c) => c !== null && c !== undefined && String(c).trim() !== ''));
+			if (clean.length < 5) {
+				panel.webview.postMessage({ type: 'customTreeError', message: 'Jumlah baris data tidak cukup untuk pelatihan pohon (minimal 5 baris).' });
+				return;
+			}
+			const headers = clean[0].map((h: any, i: number) => String(h || `Column ${i + 1}`).trim());
+			const body = clean.slice(1);
+			const dataForDT = body.map((row) => {
+				const obj: Record<string, any> = {};
+				headers.forEach((h: string, idx: number) => {
+					const val = row[idx];
+					obj[h] = val instanceof Date ? val.toISOString().split('T')[0] : (val === null || val === undefined ? null : val);
+				});
+				return obj;
+			});
+
+			const excludeAttrs = Array.isArray(options.excludeAttributes) ? options.excludeAttributes.map(String) : [];
+
+			const result = trainDecisionTree(dataForDT, targetAttribute, {
+				maxDepth: options.maxDepth !== undefined ? Number(options.maxDepth) : 6,
+				testSplit: options.testSplit !== undefined ? Number(options.testSplit) : 0.25,
+				seed: options.seed !== undefined ? Number(options.seed) : 42,
+				minSamplesLeaf: options.minSamplesLeaf !== undefined ? Number(options.minSamplesLeaf) : 2,
+				minGainRatio: options.minGainRatio !== undefined ? Number(options.minGainRatio) : 0,
+				maxBranches: options.maxBranches !== undefined ? Number(options.maxBranches) : 20,
+				mergeRare: options.mergeRare !== undefined ? Boolean(options.mergeRare) : true,
+				pruning: options.pruning !== undefined ? Boolean(options.pruning) : true,
+				validationSplit: options.validationSplit !== undefined ? Number(options.validationSplit) : 0.2,
+				cvFolds: options.cvFolds !== undefined ? Number(options.cvFolds) : 5,
+				cvMaxRows: 2000,
+				excludeAttributes: excludeAttrs,
+			});
+
+			if (result) {
+				// Sinkronkan ke memory hub jika ada
+				const fileName = path.basename(doc.uri.fsPath);
+				const entry = this.findStoredAnalysis(fileName);
+				if (entry) {
+					const sh = entry.result.sheets.find((s) => s.name === targetSheet);
+					if (sh) { sh.decisionTreeAnalysis = result; }
+				}
+				panel.webview.postMessage({
+					type: 'customTreeResult',
+					sheetName: targetSheet,
+					decisionTreeAnalysis: result,
+				});
+			} else {
+				panel.webview.postMessage({
+					type: 'customTreeError',
+					message: `Tidak dapat melatih pohon pada atribut "${targetAttribute}". Pastikan target memiliki minimal 2 kelas berbeda dan terdapat atribut prediktor lain yang valid.`,
+				});
+			}
+		} catch (err) {
+			panel.webview.postMessage({
+				type: 'customTreeError',
+				message: `Galat pelatihan pohon keputusan: ${err instanceof Error ? err.message : String(err)}`,
+			});
+		}
+	}
+
+	private getHtml(webview: vscode.Webview, media: vscode.Uri, icon: vscode.Uri, video: vscode.Uri): string {
+		const nonce = Array.from({ length: 32 }, () => Math.random().toString(36)[2]).join('');
+		const css = webview.asWebviewUri(vscode.Uri.joinPath(media, 'main.css'));
+		const js = webview.asWebviewUri(vscode.Uri.joinPath(media, 'main.js'));
+		const builder = webview.asWebviewUri(vscode.Uri.joinPath(media, 'builder.js'));
+		const spider = webview.asWebviewUri(vscode.Uri.joinPath(media, 'spider.js'));
+		const spiderCss = webview.asWebviewUri(vscode.Uri.joinPath(media, 'spider.css'));
+		const chart = webview.asWebviewUri(vscode.Uri.joinPath(media, 'chart.umd.js'));
+		const intro = webview.asWebviewUri(vscode.Uri.joinPath(media, 'intro.js'));
+		const logo = webview.asWebviewUri(vscode.Uri.joinPath(icon, 'logo.png'));
+		const mp4 = webview.asWebviewUri(vscode.Uri.joinPath(video, 'streamlit.mp4'));
+		return /* html */ `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' ${webview.cspSource}; img-src ${webview.cspSource} data:; media-src ${webview.cspSource};">
+<link href="${css}" rel="stylesheet">
+<link href="${spiderCss}" rel="stylesheet">
+<title>Date Skunder</title>
+</head>
+<body data-video="${mp4}">
+<div id="app">
+	<center><img src="${logo}" width="120" height="120" style="border-radius:20px" /></center>
+	<div class="loading">Reading analyzing data…</div>
+	<center><p>This Extension Analys Api Management Streamlit Launcher</p></center>
+</div>
+<script nonce="${nonce}" src="${chart}"></script>
+<script nonce="${nonce}" src="${builder}"></script>
+<script nonce="${nonce}" src="${spider}"></script>
+<script nonce="${nonce}" src="${js}"></script>
+<script nonce="${nonce}" src="${intro}"></script>
+</body>
+</html>`;
+	}
+}
+
+export const workbookTypes = ['.xlsx', '.xls', '.csv', '.tsv', '.xlsm'];
+
+/** Ambil URI dari argumen command, tab custom editor yang aktif, atau editor teks aktif. */
+function resolveUri(uri?: vscode.Uri): vscode.Uri | undefined {
+	if (uri) { return uri; }
+	const input = vscode.window.tabGroups.activeTabGroup.activeTab?.input;
+	if (input instanceof vscode.TabInputCustom || input instanceof vscode.TabInputText) { return input.uri; }
+	return vscode.window.activeTextEditor?.document.uri;
+}
+
+// ── Extension lifecycle ──────────────────────────────────────────────────────
+
+export function activate(context: vscode.ExtensionContext) {
+	const hub = registerAiViews(context);
+	// View “Pet Skin”: tempat ganti kostum pet Spider (menggantikan view Flowchart Canvas yang dihapus).
+	registerPetView(context, hub);
+	// View “Community Chat”: ruang chat komunitas (profil nama + deskripsi, avatar bawaan) di bawah Pet Skin;
+	// pesan tersimpan di Firebase Firestore — hanya username, deskripsi profil, isi pesan, dan waktu (tanpa gambar).
+	registerCommunityView(context);
+	const skunderProvider = new SkunderProvider(context, hub);
+
+
+	/** Kirim perintah ke pet di halaman analisis; beri tahu bila belum ada halaman terbuka. */
+	const spiderCmd = (cmd: 'tour' | 'check' | 'nonstop' | 'stop') => {
+		if (!hub.spiderCommand(cmd)) {
+			vscode.window.showInformationMessage('Buka berkas CSV/Excel lewat Date Skunder dulu — perintah pet dijalankan di halaman analisis yang terbuka.');
+		}
+	};
+
+	const exportCmd = (format: 'docx' | 'pdf' | 'xlsx' | 'workflow' | 'pptx' | 'json') => async (uri?: vscode.Uri) => {
+		const target = resolveUri(uri);
+		if (!target) {
+			vscode.window.showWarningMessage('Buka file CSV atau Excel terlebih dahulu.');
+			return;
+		}
+		await exportReport(format, target);
+	};
+
+	context.subscriptions.push(
+		vscode.window.registerCustomEditorProvider(VIEW_TYPE, skunderProvider, {
+			webviewOptions: { retainContextWhenHidden: true },
+			supportsMultipleEditorsPerDocument: false,
+		}),
+		vscode.commands.registerCommand('date-skunder.openPreview', async (uri?: vscode.Uri) => {
+			uri = uri ?? vscode.window.activeTextEditor?.document.uri;
+			if (!uri) {
+				vscode.window.showWarningMessage('Please select a CSV or Excel file first.');
+				return;
+			}
+			await vscode.commands.executeCommand('vscode.openWith', uri, VIEW_TYPE);
+		}),
+		vscode.commands.registerCommand('date-skunder.exportDocx', exportCmd('docx')),
+		vscode.commands.registerCommand('date-skunder.exportPdf', exportCmd('pdf')),
+		vscode.commands.registerCommand('date-skunder.exportXlsx', exportCmd('xlsx')),
+		vscode.commands.registerCommand('date-skunder.exportPptx', exportCmd('pptx')),
+		vscode.commands.registerCommand('date-skunder.exportWorkflow', exportCmd('workflow')),
+		vscode.commands.registerCommand('date-skunder.exportJson', exportCmd('json')),
+		// Shortcut pet Spider: perintah dikirim ke halaman analisis yang terbuka (pet merespons
+		// hanya bila halamannya terlihat, jadi shortcut tidak “menekan” halaman lain).
+		vscode.commands.registerCommand('date-skunder.spider.tour', () => spiderCmd('tour')),
+		vscode.commands.registerCommand('date-skunder.spider.check', () => spiderCmd('check')),
+		vscode.commands.registerCommand('date-skunder.spider.nonstop', () => spiderCmd('nonstop')),
+		vscode.commands.registerCommand('date-skunder.spider.stop', () => spiderCmd('stop')),
+		vscode.commands.registerCommand('date-skunder.exportPython', async (uri?: vscode.Uri) => {
+			const target = resolveUri(uri);
+			if (!target) {
+				vscode.window.showWarningMessage('Buka file CSV atau Excel terlebih dahulu.');
+				return;
+			}
+			await exportPython(target);
+		})
+	);
+}
+
+export function deactivate() { }

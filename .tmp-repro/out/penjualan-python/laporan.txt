@@ -1,0 +1,94 @@
+========================================================================
+LAPORAN ANALISIS DATA — penjualan.csv
+Dibuat oleh Date Skunder · 14/10/2026, 21.24.05
+Jumlah sheet: 1
+========================================================================
+
+------------------------------------------------------------------------
+SHEET: Sheet1  (150 baris x 8 kolom)
+------------------------------------------------------------------------
+  Sel kosong 8 dari 1200 (0,7%) · baris duplikat 0
+  Kolom: 3 numerik, 5 lain-lain
+
+  [1] Tanggal (unik 108, kosong 0)
+      teratas: 2025-01-01 2 | 2025-02-02 2 | 2025-03-03 2 | 2025-04-04 2 | 2025-05-05 2
+  [2] Produk (unik 6, kosong 0)
+      teratas: Gula Aren 28 | Kopi Arabika 28 | Susu Kental 26 | Cokelat Bubuk 24 | Kopi Robusta 24
+  [3] Kategori (unik 2, kosong 0)
+      teratas: Bahan 78 | Minuman 72
+  [4] Wilayah (unik 4, kosong 0)
+      teratas: Medan 45 | Jakarta 40 | Surabaya 35 | Bandung 30
+  [5] Pelanggan (unik 5, kosong 8)
+      teratas: Eka 34 | Dewi 31 | Andi 30 | Budi 29 | Citra 18
+  [6] Qty (numerik)
+      min 1,00 · mean 12,66 · median 12,00 · max 25,00 · std 7,36 · jumlah 1.899,00
+  [7] Harga (numerik)
+      min 5.791,00 · mean 27.224,31 · median 26.885,50 · max 49.240,00 · std 12.741,42 · jumlah 4.083.647,00
+  [8] Total (numerik)
+      min 6.123,00 · mean 350.278,39 · median 291.030,00 · max 1.160.544,00 · std 270.665,82 · jumlah 52.541.759,00
+
+[KUALITAS & PROFIL CSV]
+  Skor 100/100 (🟢 Sangat Sehat (Excellent Quality)) · kelengkapan 99,30% · integritas 100,00% · konsistensi 100,00%
+   [warn] Missing / Null Values: 8 sel kosong (0.7%)
+   [pass] Duplikasi Baris (Duplicates): Tidak ada baris duplikat
+   [pass] Struktur Kolom & Tipe Data: 8 kolom bertipe terstruktur (numerik/tanggal/kategori)
+   [warn] Nilai Ekstrem (Numeric Outliers): 1 kolom memiliki pencilan data (outlier)
+   [pass] Kerapatan & Densitas Data: 8 kolom × 150 baris (1.192 nilai terisi)
+   * Terdapat 8 sel kosong. Dianjurkan melakukan imputasi (median/mean) atau filtering data sebelum pemodelan.
+   * Tinjau kolom dengan outlier: "Total".
+
+[KPI BISNIS]
+  Pendapatan 52.541.759,00 dari 150 order (AOV 350.278,39)
+  Biaya - · laba kotor - · margin -
+  Unit terjual 1.899,00 · item/order 12,66 · diskon - (- dari nilai kotor)
+  Pelanggan 5 · pendapatan/pelanggan 10.508.351,80 · pelanggan berulang 100,00% · retensi 90,45% · kontribusi 10% pelanggan teratas 24,66%
+  Pertumbuhan: periode terakhir -13,97% · rata-rata 1,98% · terbaik 2025-05 · terlemah 2025-08
+  Konsentrasi: 5 produk (83,33%) menghasilkan 80% pendapatan · HHI 1.720
+  Produk teratas: Gula Aren 11.918.577,00; Susu Kental 8.964.714,00; Kopi Arabika 8.951.162,00; Cokelat Bubuk 7.819.833,00; Teh Hijau 7.778.785,00
+  Kategori teratas: Bahan 28.703.124,00; Minuman 23.838.635,00
+  Wilayah teratas: Medan 15.480.220,00; Jakarta 15.266.556,00; Bandung 10.952.455,00; Surabaya 10.842.528,00
+  Pelanggan teratas: Eka 12.956.712,00; Dewi 10.776.494,00; Andi 10.498.943,00; Budi 10.422.834,00; Citra 4.805.472,00
+  Tren per periode: 2025-01 5.157.817,00 | 2025-02 4.560.626,00 | 2025-03 5.046.123,00 | 2025-04 3.456.866,00 | 2025-05 5.789.745,00 | 2025-06 5.173.251,00 | 2025-07 3.719.508,00 | 2025-08 2.892.018,00 | 2025-09 3.720.538,00 | 2025-10 3.783.409,00 | 2025-11 4.967.836,00 | 2025-12 4.274.022,00
+
+[STOK / INVENTARIS]
+  6 SKU · volume 1.899,00 · valuasi 52.541.759,07 · 0 kritis, 0 menipis, 6 aman, 0 overstock
+  Kelas ABC: A 3 SKU (56,8% nilai), B 2 (29,7%), C 1 (13,5%)
+  Stok terbanyak: Gula Aren 437,00; Kopi Arabika 371,00; Susu Kental 319,00; Cokelat Bubuk 293,00; Teh Hijau 240,00
+  Stok paling sedikit: Kopi Robusta 239,00; Teh Hijau 240,00; Cokelat Bubuk 293,00; Susu Kental 319,00; Kopi Arabika 371,00
+
+[KEBUTUHAN PENGADAAN]
+  Anggaran 0,00 · 0 item mendesak, 0 prioritas tinggi
+   ! Ketergantungan Kategori Tinggi: Kategori "Bahan" mendominasi lebih dari 40% perputaran. Diversifikasi lini produk dianjurkan.
+
+[DECISION TREE C4.5]
+  Target "Produk" · akurasi 27,0% · precision 27,0% · recall 27,0% · F1 27,0%
+  Atribut terpenting: Kategori 49,5%; Qty 41,2%; Pelanggan 6,6%; Wilayah 2,7%
+  Aturan (maks. 8):
+   - IF Kategori = Bahan AND Qty = 21 AND Pelanggan = Andi THEN Class = Cokelat Bubuk (1 samples)
+   - IF Kategori = Bahan AND Qty = 21 AND Pelanggan = Eka AND Wilayah = Surabaya THEN Class = Gula Aren (1 samples)
+   - IF Kategori = Bahan AND Qty = 21 AND Pelanggan = Eka AND Wilayah = Jakarta THEN Class = Susu Kental (1 samples)
+   - IF Kategori = Bahan AND Qty = 21 AND Pelanggan = Budi THEN Class = Susu Kental (2 samples)
+   - IF Kategori = Bahan AND Qty = 10 THEN Class = Cokelat Bubuk (1 samples)
+   - IF Kategori = Bahan AND Qty = 5 THEN Class = Susu Kental (2 samples)
+   - IF Kategori = Bahan AND Qty = 24 AND Wilayah = Jakarta THEN Class = Susu Kental (1 samples)
+   - IF Kategori = Bahan AND Qty = 24 AND Wilayah = Bandung THEN Class = Gula Aren (1 samples)
+
+[TEMUAN OTOMATIS]
+  - Dataset contains 150 rows and 8 columns (3 numeric, 4 categorical, 1 date).
+  - 🩺 Skor Kualitas File CSV: 100% (🟢 Sangat Sehat (Excellent Quality)).
+  - Found 8 missing cells (0.7% of all cells).
+  - 🔗 Strong positive correlation between "Qty" and "Total" (r = 0.743).
+  - Date range for "Tanggal": 2025-01-01 → 2025-12-27.
+  - Most frequent value in "Produk": Gula Aren (19%).
+  - Most frequent value in "Kategori": Bahan (52%).
+  - Most frequent value in "Wilayah": Medan (30%).
+  - Most frequent value in "Pelanggan": Eka (24%).
+  - Analisis Stok Barang: Terdeteksi 6 produk unik dengan total kuantitas 1,899 unit (Valuasi Aset: 52,541,759).
+  - 📈 Pendapatan total 52.541.759 dari 150 order (AOV 350.278,39).
+  - 📈 Pendapatan periode terakhir turun 13.97% dibanding periode sebelumnya.
+  - 📈 Periode terbaik 2025-05, terlemah 2025-08.
+  - 📈 Produk teratas "Gula Aren" menyumbang 22.68% pendapatan.
+  - 📈 Pareto: 83.33% produk (5 item) menghasilkan 80% pendapatan; HHI 1720.
+  - 📈 100% pelanggan melakukan pembelian berulang.
+  - 🌳 Decision Tree C4.5: Model klasifikasi dibangun untuk prediksi "Produk" dengan akurasi 27.0% (91 aturan keputusan).
+  - 📊 Feature Importance: "Kategori" adalah atribut paling penting (49.5% kontribusi).

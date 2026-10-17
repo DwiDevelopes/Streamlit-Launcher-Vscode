@@ -1,0 +1,10 @@
+# Paket opsional untuk paket export Date Skunder.
+# analysis.py TIDAK memerlukan paket apa pun (hanya pustaka bawaan Python).
+# Pasang baris berikut bila ingin grafik dan dashboard:
+
+# Grafik PNG dari analysis.py:
+matplotlib>=3.5
+
+# Dashboard interaktif (streamlit_app.py):
+streamlit>=1.30
+pandas>=1.5

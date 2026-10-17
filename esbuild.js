@@ -36,6 +36,15 @@ const esbuildProblemMatcherPlugin = {
 	},
 };
 
+const pdfkitStandalonePlugin = {
+	name: 'pdfkit-standalone-alias',
+	setup(build) {
+		build.onResolve({ filter: /^pdfkit(\/.*)?$/ }, () => {
+			return { path: path.join(__dirname, 'node_modules', 'pdfkit', 'js', 'pdfkit.standalone.js') };
+		});
+	}
+};
+
 async function main() {
 	const ctx = await esbuild.context({
 		entryPoints: [
@@ -51,7 +60,7 @@ async function main() {
 		external: ['vscode'],
 		logLevel: 'silent',
 		plugins: [
-			/* add to the end of plugins array */
+			pdfkitStandalonePlugin,
 			esbuildProblemMatcherPlugin,
 		],
 	});
